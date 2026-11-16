@@ -69,7 +69,7 @@ check: generate ## Переконатися, що згенерований ко�
 
 test: test-java test-go test-dart ## Усі тести
 
-test-java: ## Тести Java-пакета
+test-java: bundle ## Тести Java-пакета
 	$(MVN) -B -ntp -f java/pom.xml test
 
 test-go: ## Тести Go-модуля

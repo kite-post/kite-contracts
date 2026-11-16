@@ -1,0 +1,96 @@
+# Пайплайн тут свій, а не спільний із .github: решта репозиторіїв збирає образи,
+# а цей публікує пакети. Спільного workflow для бібліотек поки немає — якщо
+# з'явиться другий такий репозиторій, цей файл варто перенести туди (5.6).
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Схеми, генерація і тести
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Поставити JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # Генератори Go, Dart і openapi-generator їдуть у Docker — на раннері він
+      # уже є, тож ставити три тулчейни окремо не треба. Те саме, що й локально.
+      - name: Перевірити контракт і схеми подій
+        run: make lint
+
+      - name: Згенерований код відповідає схемам
+        run: make check
+
+      - name: Тести трьох мов
+        run: make test
+
+      - name: Версія розставлена всюди однаково
+        run: |
+          set -euo pipefail
+          python3 tools/set-version.py
+          git diff --exit-code -- VERSION java/pom.xml tools/openapi-generator-dart.yaml openapi/openapi.yaml
+
+  publish:
+    name: Публікація Maven-пакета
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      MAVEN_USERNAME: ${{ github.actor }}
+      MAVEN_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Поставити JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          server-id: github
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
+      - name: Тег дорівнює версії в репозиторії
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          have="$(cat VERSION)"
+          if [ "$tag" != "$have" ]; then
+            echo "::error::тег v$tag не збігається з VERSION=$have — спершу make version V=$tag"
+            exit 1
+          fi
+
+      - name: Зібрати зведений контракт
+        run: make bundle
+
+      - name: Опублікувати ua.kite:kite-contracts
+        run: mvn -B -ntp -f java/pom.xml -DskipTests deploy
+
+      - name: Що тепер підключати
+        run: |
+          v="$(cat VERSION)"
+          {
+            echo "### kite-contracts v$v опубліковано"
+            echo
+            echo "- Java: \`ua.kite:kite-contracts:$v\` у GitHub Packages"
+            echo "- Go: \`go get github.com/kite-post/kite-contracts@v$v\`"
+            echo "- Dart: git-залежність із \`ref: v$v\`, шлях \`dart\`"
+          } >> "$GITHUB_STEP_SUMMARY"
