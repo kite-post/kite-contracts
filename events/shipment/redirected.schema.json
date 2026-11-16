@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/shipment/redirected/v1.json",
+  "title": "ShipmentRedirectedData",
+  "description": "Переадресація: T9 у дорозі безкоштовно, T10 після прибуття за 50 грн (KT60, KT62).",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "trackingNumber",
+    "toLocationId",
+    "afterArrival"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "trackingNumber": {
+      "$ref": "api.schema.json#/$defs/TrackingNumber"
+    },
+    "actionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "delivery_action, що породив переадресацію"
+    },
+    "fromLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "toLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "afterArrival": {
+      "type": "boolean",
+      "description": "true — платна переадресація після прибуття (T10)"
+    },
+    "price": {
+      "$ref": "api.schema.json#/$defs/Money"
+    }
+  }
+}

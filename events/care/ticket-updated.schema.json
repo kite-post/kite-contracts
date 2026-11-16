@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/care/ticket-updated/v1.json",
+  "title": "CareTicketUpdatedData",
+  "description": "Зміна в тікеті підтримки: новий стан або нове повідомлення.",
+  "type": "object",
+  "required": [
+    "ticketId",
+    "status"
+  ],
+  "properties": {
+    "ticketId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "$ref": "api.schema.json#/$defs/TicketStatus"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "lastMessageAuthor": {
+      "type": "string",
+      "enum": [
+        "CUSTOMER",
+        "AGENT",
+        "SYSTEM"
+      ]
+    },
+    "assigneeUserId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/care/claim-resolved/v1.json",
+  "title": "CareClaimResolvedData",
+  "description": "Претензію закрито; при компенсації payment-service повертає кошти (9.7).",
+  "type": "object",
+  "required": [
+    "claimId",
+    "shipmentId",
+    "status"
+  ],
+  "properties": {
+    "claimId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "$ref": "api.schema.json#/$defs/ClaimStatus"
+    },
+    "approvedAmount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "resolvedByUserId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "resolution": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  }
+}

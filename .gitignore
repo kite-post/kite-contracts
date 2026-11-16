@@ -1,0 +1,12 @@
+# Зведений документ і Java-класи — продукт збірки, у git їх немає.
+build/
+java/target/
+
+# Dart
+dart/.dart_tool/
+dart/pubspec.lock
+dart/.pub-cache/
+
+# Локальне
+.DS_Store
+*.log

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/payment/payout-completed/v1.json",
+  "title": "PaymentPayoutCompletedData",
+  "description": "Виплату післяплати перераховано: щотижня для Pro, щодня для Enterprise (бізнес-модель).",
+  "type": "object",
+  "required": [
+    "payoutId",
+    "amount",
+    "periodFrom",
+    "periodTo"
+  ],
+  "properties": {
+    "payoutId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "customerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "amount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "ibanMask": {
+      "type": "string",
+      "description": "Останні чотири знаки рахунку — повного IBAN подія не носить",
+      "pattern": "^\\*{4}[0-9]{4}$"
+    },
+    "shipmentCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "periodFrom": {
+      "type": "string",
+      "format": "date"
+    },
+    "periodTo": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}

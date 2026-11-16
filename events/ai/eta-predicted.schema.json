@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/ai/eta-predicted/v1.json",
+  "title": "AiEtaPredictedData",
+  "description": "Новий прогноз дати доставки: перераховується на кожному скані (5.5, п. 4).",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "from",
+    "to",
+    "modelVersion"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "to": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "modelVersion": {
+      "type": "string"
+    },
+    "previousTo": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Попередня межа прогнозу — щоб побачити зсув"
+    }
+  }
+}

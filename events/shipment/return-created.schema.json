@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/shipment/return-created/v1.json",
+  "title": "ShipmentReturnCreatedData",
+  "description": "Створено пов'язане відправлення-повернення: T14 (KT70, KT71).",
+  "type": "object",
+  "required": [
+    "originalShipmentId",
+    "returnShipmentId",
+    "returnTrackingNumber",
+    "reason"
+  ],
+  "properties": {
+    "originalShipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "returnShipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "returnTrackingNumber": {
+      "$ref": "api.schema.json#/$defs/TrackingNumber"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "REFUSED",
+        "STORAGE_EXPIRED",
+        "RECIPIENT_UNREACHABLE"
+      ]
+    },
+    "destinationLocationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Куди повертаємо — точка відправника"
+    }
+  }
+}

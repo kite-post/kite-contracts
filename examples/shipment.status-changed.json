@@ -1,0 +1,25 @@
+{
+  "specversion": "1.0",
+  "id": "0193c2f4-2f4a-7a7e-9c3d-2f1b8a6e4d11",
+  "source": "/kite/shipment-service",
+  "type": "kite.shipment.status-changed.v1",
+  "subject": "KT123456785UA",
+  "time": "2026-11-16T09:14:03Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://schemas.kite.ua/events/shipment/status-changed/v1.json",
+  "kitereceivedat": "2026-11-16T09:14:04.812Z",
+  "kiterequestid": "req-7f3c1a",
+  "kitepartitionkey": "0193c2f4-1111-7a7e-9c3d-2f1b8a6e4d00",
+  "data": {
+    "shipmentId": "0193c2f4-1111-7a7e-9c3d-2f1b8a6e4d00",
+    "trackingNumber": "KT123456785UA",
+    "parcelId": "0193c2f4-2222-7a7e-9c3d-2f1b8a6e4d02",
+    "statusBefore": "IN_TRANSIT",
+    "statusAfter": "READY_FOR_PICKUP",
+    "eventCode": "KT30",
+    "transition": "T7",
+    "locationId": "0193c2f4-3333-7a7e-9c3d-2f1b8a6e4d03",
+    "causeScanEventId": "0193c2f4-4444-7a7e-9c3d-2f1b8a6e4d04",
+    "storageFreeUntil": "2026-11-21T09:14:03Z"
+  }
+}

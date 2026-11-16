@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/customer/trusted-person-changed/v1.json",
+  "title": "CustomerTrustedPersonChangedData",
+  "description": "Довірену особу додано або прибрано: shipment-service оновлює перелік тих, хто може отримати (6.2, authorized_recipient).",
+  "type": "object",
+  "required": [
+    "customerId",
+    "trustedPersonId",
+    "change",
+    "phoneHash"
+  ],
+  "properties": {
+    "customerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "trustedPersonId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "change": {
+      "type": "string",
+      "enum": [
+        "ADDED",
+        "REMOVED"
+      ]
+    },
+    "phoneHash": {
+      "$ref": "common.schema.json#/$defs/PhoneHash"
+    }
+  }
+}

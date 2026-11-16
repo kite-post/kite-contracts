@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/shipment/status-changed/v1.json",
+  "title": "ShipmentStatusChangedData",
+  "description": "Зміна стану відправлення. Головна подія системи: її слухають tracking, notification, payment, locker, business, ai, audit (9.7).",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "trackingNumber",
+    "statusBefore",
+    "statusAfter",
+    "eventCode"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "trackingNumber": {
+      "$ref": "api.schema.json#/$defs/TrackingNumber"
+    },
+    "parcelId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Місце, скан якого зрушив стан; для відправлення з одним місцем збігається"
+    },
+    "statusBefore": {
+      "$ref": "api.schema.json#/$defs/ShipmentStatus"
+    },
+    "statusAfter": {
+      "$ref": "api.schema.json#/$defs/ShipmentStatus"
+    },
+    "eventCode": {
+      "$ref": "api.schema.json#/$defs/EventCode"
+    },
+    "transition": {
+      "$ref": "common.schema.json#/$defs/Transition"
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "causeScanEventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Подія скану, яка привела до переходу"
+    },
+    "storageFreeUntil": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Для T7 — старт таймера безкоштовного зберігання (7.3)"
+    }
+  }
+}

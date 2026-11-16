@@ -1,0 +1,26 @@
+{
+  "specversion": "1.0",
+  "id": "0193c2f5-aaaa-7a7e-9c3d-2f1b8a6e4d21",
+  "source": "/kite/scan-service",
+  "type": "kite.scan.unit-scanned.v1",
+  "subject": "BG0000000417",
+  "time": "2026-11-16T03:41:58Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://schemas.kite.ua/events/scan/unit-scanned/v1.json",
+  "kitereceivedat": "2026-11-16T03:41:58.204Z",
+  "kitepartitionkey": "BG0000000417",
+  "data": {
+    "scanId": "0193c2f5-bbbb-7a7e-9c3d-2f1b8a6e4d22",
+    "unitCode": "BG0000000417",
+    "operation": "LOAD",
+    "locationId": "0193c2f5-cccc-7a7e-9c3d-2f1b8a6e4d23",
+    "deviceId": "0193c2f5-dddd-7a7e-9c3d-2f1b8a6e4d24",
+    "userId": "0193c2f5-eeee-7a7e-9c3d-2f1b8a6e4d25",
+    "tripId": "0193c2f5-ffff-7a7e-9c3d-2f1b8a6e4d26",
+    "shipmentIds": [
+      "0193c2f5-0001-7a7e-9c3d-2f1b8a6e4d27",
+      "0193c2f5-0002-7a7e-9c3d-2f1b8a6e4d28"
+    ],
+    "outcome": "OK"
+  }
+}

@@ -1,0 +1,576 @@
+{
+  "$comment": "Реєстр доменних подій Kite. Джерело правди для імен типів, топіків і того, яка схема описує data. Розділи 8.2, 8.3 і 9.7 документації.",
+  "envelope": "cloudevents.schema.json",
+  "events": [
+    {
+      "type": "kite.shipment.created.v1",
+      "topic": "shipment.events",
+      "producer": "shipment-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "payment-service",
+        "locker-service",
+        "business-service",
+        "ai-service",
+        "audit-service"
+      ],
+      "schema": "shipment/created.schema.json",
+      "dataSchemaTitle": "ShipmentCreatedData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT01"
+      ],
+      "description": "Накладну створено (KT01). Продюсер — shipment-service, єдиний власник стану (8.1)."
+    },
+    {
+      "type": "kite.shipment.confirmed.v1",
+      "topic": "shipment.events",
+      "producer": "shipment-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "payment-service",
+        "locker-service",
+        "business-service",
+        "ai-service",
+        "audit-service"
+      ],
+      "schema": "shipment/confirmed.schema.json",
+      "dataSchemaTitle": "ShipmentConfirmedData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT01"
+      ],
+      "description": "Чернетку підтверджено: перехід T1 DRAFT → CREATED (KT01)."
+    },
+    {
+      "type": "kite.shipment.cancelled.v1",
+      "topic": "shipment.events",
+      "producer": "shipment-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "payment-service",
+        "locker-service",
+        "business-service",
+        "ai-service",
+        "audit-service"
+      ],
+      "schema": "shipment/cancelled.schema.json",
+      "dataSchemaTitle": "ShipmentCancelledData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT03"
+      ],
+      "description": "Скасовано відправником до прийому: перехід T2 (KT03). Онлайн-оплата повертається."
+    },
+    {
+      "type": "kite.shipment.status-changed.v1",
+      "topic": "shipment.events",
+      "producer": "shipment-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "payment-service",
+        "locker-service",
+        "business-service",
+        "ai-service",
+        "audit-service"
+      ],
+      "schema": "shipment/status-changed.schema.json",
+      "dataSchemaTitle": "ShipmentStatusChangedData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT10",
+        "KT20",
+        "KT21",
+        "KT22",
+        "KT30",
+        "KT31",
+        "KT32",
+        "KT33",
+        "KT50",
+        "KT62",
+        "KT63",
+        "KT70",
+        "KT71",
+        "KT81",
+        "KT82"
+      ],
+      "description": "Зміна стану відправлення. Головна подія системи: її слухають tracking, notification, payment, locker, business, ai, audit (9.7)."
+    },
+    {
+      "type": "kite.shipment.redirected.v1",
+      "topic": "shipment.events",
+      "producer": "shipment-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "payment-service",
+        "locker-service",
+        "business-service",
+        "ai-service",
+        "audit-service"
+      ],
+      "schema": "shipment/redirected.schema.json",
+      "dataSchemaTitle": "ShipmentRedirectedData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT60",
+        "KT62"
+      ],
+      "description": "Переадресація: T9 у дорозі безкоштовно, T10 після прибуття за 50 грн (KT60, KT62)."
+    },
+    {
+      "type": "kite.shipment.recipient-changed.v1",
+      "topic": "shipment.events",
+      "producer": "shipment-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "payment-service",
+        "locker-service",
+        "business-service",
+        "ai-service",
+        "audit-service"
+      ],
+      "schema": "shipment/recipient-changed.schema.json",
+      "dataSchemaTitle": "ShipmentRecipientChangedData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT61"
+      ],
+      "description": "Змінено отримувача (KT61)."
+    },
+    {
+      "type": "kite.shipment.hold-set.v1",
+      "topic": "shipment.events",
+      "producer": "shipment-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "payment-service",
+        "locker-service",
+        "business-service",
+        "ai-service",
+        "audit-service"
+      ],
+      "schema": "shipment/hold-set.schema.json",
+      "dataSchemaTitle": "ShipmentHoldSetData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT32"
+      ],
+      "description": "«Відпустка» клієнта: T11 до 14 днів, або зміна дати утримання (KT32)."
+    },
+    {
+      "type": "kite.shipment.return-created.v1",
+      "topic": "shipment.events",
+      "producer": "shipment-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "payment-service",
+        "locker-service",
+        "business-service",
+        "ai-service",
+        "audit-service"
+      ],
+      "schema": "shipment/return-created.schema.json",
+      "dataSchemaTitle": "ShipmentReturnCreatedData",
+      "partitionKey": "originalShipmentId",
+      "eventCodes": [
+        "KT70",
+        "KT71"
+      ],
+      "description": "Створено пов'язане відправлення-повернення: T14 (KT70, KT71)."
+    },
+    {
+      "type": "kite.scan.recorded.v1",
+      "topic": "scan.events",
+      "producer": "scan-service",
+      "consumers": [
+        "shipment-service",
+        "logistics-service",
+        "tracking-service",
+        "realtime-service"
+      ],
+      "schema": "scan/recorded.schema.json",
+      "dataSchemaTitle": "ScanRecordedData",
+      "partitionKey": "shipmentId",
+      "description": "Скан місця. Публікує scan-service після валідації; споживають shipment, logistics, tracking, realtime (5.5, п. 2)."
+    },
+    {
+      "type": "kite.scan.unit-scanned.v1",
+      "topic": "scan.events",
+      "producer": "scan-service",
+      "consumers": [
+        "shipment-service",
+        "logistics-service",
+        "tracking-service",
+        "realtime-service"
+      ],
+      "schema": "scan/unit-scanned.schema.json",
+      "dataSchemaTitle": "ScanUnitScannedData",
+      "partitionKey": "unitCode",
+      "description": "Скан мішка або контейнера. Список shipmentIds знятий транзакційно в момент скану; tracking-service розкладає подію віялом (8.3, п. 2)."
+    },
+    {
+      "type": "kite.scan.voided.v1",
+      "topic": "scan.events",
+      "producer": "scan-service",
+      "consumers": [
+        "shipment-service",
+        "logistics-service",
+        "tracking-service",
+        "realtime-service"
+      ],
+      "schema": "scan/voided.schema.json",
+      "dataSchemaTitle": "ScanVoidedData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT90"
+      ],
+      "description": "Скан анульовано (KT90). Право має тільки диспетчер; стан перераховується відтворенням журналу (8.3, п. 6)."
+    },
+    {
+      "type": "kite.logistics.unit-closed.v1",
+      "topic": "logistics.events",
+      "producer": "logistics-service",
+      "consumers": [
+        "shipment-service",
+        "tracking-service",
+        "realtime-service"
+      ],
+      "schema": "logistics/unit-closed.schema.json",
+      "dataSchemaTitle": "LogisticsUnitClosedData",
+      "partitionKey": "unitCode",
+      "eventCodes": [
+        "KT22"
+      ],
+      "description": "Мішок закрито і відправлено на лінію. Споживають shipment, tracking, realtime (9.7)."
+    },
+    {
+      "type": "kite.logistics.trip-departed.v1",
+      "topic": "logistics.events",
+      "producer": "logistics-service",
+      "consumers": [
+        "shipment-service",
+        "tracking-service",
+        "realtime-service"
+      ],
+      "schema": "logistics/trip-departed.schema.json",
+      "dataSchemaTitle": "LogisticsTripDepartedData",
+      "partitionKey": "tripId",
+      "eventCodes": [
+        "KT20"
+      ],
+      "description": "Рейс вирушив: місця в ньому йдуть у IN_TRANSIT (T4)."
+    },
+    {
+      "type": "kite.logistics.trip-arrived.v1",
+      "topic": "logistics.events",
+      "producer": "logistics-service",
+      "consumers": [
+        "shipment-service",
+        "tracking-service",
+        "realtime-service"
+      ],
+      "schema": "logistics/trip-arrived.schema.json",
+      "dataSchemaTitle": "LogisticsTripArrivedData",
+      "partitionKey": "tripId",
+      "eventCodes": [
+        "KT21",
+        "KT30"
+      ],
+      "description": "Рейс прибув: далі розвантаження (T5, T7)."
+    },
+    {
+      "type": "kite.logistics.discrepancy-opened.v1",
+      "topic": "logistics.events",
+      "producer": "logistics-service",
+      "consumers": [
+        "shipment-service",
+        "tracking-service",
+        "realtime-service"
+      ],
+      "schema": "logistics/discrepancy-opened.schema.json",
+      "dataSchemaTitle": "LogisticsDiscrepancyOpenedData",
+      "partitionKey": "tripId",
+      "eventCodes": [
+        "KT23"
+      ],
+      "description": "Розбіжність при звірці маніфесту: нестача, зайве, пошкодження, неправильне сортування (6.2, discrepancy)."
+    },
+    {
+      "type": "kite.locker.cell-reserved.v1",
+      "topic": "locker.events",
+      "producer": "locker-service",
+      "consumers": [
+        "shipment-service",
+        "tracking-service",
+        "notification-service"
+      ],
+      "schema": "locker/cell-reserved.schema.json",
+      "dataSchemaTitle": "LockerCellReservedData",
+      "partitionKey": "shipmentId",
+      "description": "Комірку закріплено за відправленням або камерою зберігання."
+    },
+    {
+      "type": "kite.locker.parcel-deposited.v1",
+      "topic": "locker.events",
+      "producer": "locker-service",
+      "consumers": [
+        "shipment-service",
+        "tracking-service",
+        "notification-service"
+      ],
+      "schema": "locker/parcel-deposited.schema.json",
+      "dataSchemaTitle": "LockerParcelDepositedData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT10",
+        "KT31"
+      ],
+      "description": "Посилку поклали в комірку: прийом у Kite Box (T3) або готовність до видачі (KT31)."
+    },
+    {
+      "type": "kite.locker.parcel-collected.v1",
+      "topic": "locker.events",
+      "producer": "locker-service",
+      "consumers": [
+        "shipment-service",
+        "tracking-service",
+        "notification-service"
+      ],
+      "schema": "locker/parcel-collected.schema.json",
+      "dataSchemaTitle": "LockerParcelCollectedData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT50"
+      ],
+      "description": "Посилку забрали з комірки: видача (T8, KT50)."
+    },
+    {
+      "type": "kite.locker.storage-expired.v1",
+      "topic": "locker.events",
+      "producer": "locker-service",
+      "consumers": [
+        "shipment-service",
+        "tracking-service",
+        "notification-service"
+      ],
+      "schema": "locker/storage-expired.schema.json",
+      "dataSchemaTitle": "LockerStorageExpiredData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT63"
+      ],
+      "description": "Вичерпано строк у поштоматі: 3 доби, +24 год один раз — далі T13 у відділення (7.3)."
+    },
+    {
+      "type": "kite.payment.succeeded.v1",
+      "topic": "payment.events",
+      "producer": "payment-service",
+      "consumers": [
+        "shipment-service",
+        "notification-service",
+        "business-service"
+      ],
+      "schema": "payment/succeeded.schema.json",
+      "dataSchemaTitle": "PaymentSucceededData",
+      "partitionKey": "shipmentId",
+      "eventCodes": [
+        "KT02"
+      ],
+      "description": "Платіж успішний (KT02 для оплати доставки). Споживають shipment, notification, business (9.7)."
+    },
+    {
+      "type": "kite.payment.failed.v1",
+      "topic": "payment.events",
+      "producer": "payment-service",
+      "consumers": [
+        "shipment-service",
+        "notification-service",
+        "business-service"
+      ],
+      "schema": "payment/failed.schema.json",
+      "dataSchemaTitle": "PaymentFailedData",
+      "partitionKey": "shipmentId",
+      "description": "Платіж не пройшов: сага відправлення компенсує створення (5.4, п. 4)."
+    },
+    {
+      "type": "kite.payment.refund-completed.v1",
+      "topic": "payment.events",
+      "producer": "payment-service",
+      "consumers": [
+        "shipment-service",
+        "notification-service",
+        "business-service"
+      ],
+      "schema": "payment/refund-completed.schema.json",
+      "dataSchemaTitle": "PaymentRefundCompletedData",
+      "partitionKey": "shipmentId",
+      "description": "Повернення коштів завершено: скасування до прийому (T2) або компенсація за претензією."
+    },
+    {
+      "type": "kite.payment.cod-collected.v1",
+      "topic": "payment.events",
+      "producer": "payment-service",
+      "consumers": [
+        "shipment-service",
+        "notification-service",
+        "business-service"
+      ],
+      "schema": "payment/cod-collected.schema.json",
+      "dataSchemaTitle": "PaymentCodCollectedData",
+      "partitionKey": "shipmentId",
+      "description": "Післяплату зібрано при видачі; далі — виплата відправнику (6.2, cod)."
+    },
+    {
+      "type": "kite.payment.payout-completed.v1",
+      "topic": "payment.events",
+      "producer": "payment-service",
+      "consumers": [
+        "shipment-service",
+        "notification-service",
+        "business-service"
+      ],
+      "schema": "payment/payout-completed.schema.json",
+      "dataSchemaTitle": "PaymentPayoutCompletedData",
+      "partitionKey": "payoutId",
+      "description": "Виплату післяплати перераховано: щотижня для Pro, щодня для Enterprise (бізнес-модель)."
+    },
+    {
+      "type": "kite.customer.phone-verified.v1",
+      "topic": "customer.events",
+      "producer": "customer-service",
+      "consumers": [
+        "tracking-service",
+        "shipment-service"
+      ],
+      "schema": "customer/phone-verified.schema.json",
+      "dataSchemaTitle": "CustomerPhoneVerifiedData",
+      "partitionKey": "customerId",
+      "description": "Номер підтверджено: tracking-service перебудовує індекс «мені» (9.7)."
+    },
+    {
+      "type": "kite.customer.phone-removed.v1",
+      "topic": "customer.events",
+      "producer": "customer-service",
+      "consumers": [
+        "tracking-service",
+        "shipment-service"
+      ],
+      "schema": "customer/phone-removed.schema.json",
+      "dataSchemaTitle": "CustomerPhoneRemovedData",
+      "partitionKey": "customerId",
+      "description": "Номер прибрано: відправлення на нього більше не показуємо в дашборді «мені»."
+    },
+    {
+      "type": "kite.customer.trusted-person-changed.v1",
+      "topic": "customer.events",
+      "producer": "customer-service",
+      "consumers": [
+        "tracking-service",
+        "shipment-service"
+      ],
+      "schema": "customer/trusted-person-changed.schema.json",
+      "dataSchemaTitle": "CustomerTrustedPersonChangedData",
+      "partitionKey": "customerId",
+      "description": "Довірену особу додано або прибрано: shipment-service оновлює перелік тих, хто може отримати (6.2, authorized_recipient)."
+    },
+    {
+      "type": "kite.ai.eta-predicted.v1",
+      "topic": "ai.events",
+      "producer": "ai-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "shipment-service"
+      ],
+      "schema": "ai/eta-predicted.schema.json",
+      "dataSchemaTitle": "AiEtaPredictedData",
+      "partitionKey": "shipmentId",
+      "description": "Новий прогноз дати доставки: перераховується на кожному скані (5.5, п. 4)."
+    },
+    {
+      "type": "kite.ai.risk-scored.v1",
+      "topic": "ai.events",
+      "producer": "ai-service",
+      "consumers": [
+        "tracking-service",
+        "notification-service",
+        "shipment-service"
+      ],
+      "schema": "ai/risk-scored.schema.json",
+      "dataSchemaTitle": "AiRiskScoredData",
+      "partitionKey": "shipmentId",
+      "description": "Оцінка ризику неотримання з причинами (11, ризик невдалої доставки)."
+    },
+    {
+      "type": "kite.care.claim-created.v1",
+      "topic": "care.events",
+      "producer": "care-service",
+      "consumers": [
+        "notification-service",
+        "payment-service"
+      ],
+      "schema": "care/claim-created.schema.json",
+      "dataSchemaTitle": "CareClaimCreatedData",
+      "partitionKey": "shipmentId",
+      "description": "Претензію створено: вручну клієнтом або автоматично при T15 (LOST)."
+    },
+    {
+      "type": "kite.care.claim-resolved.v1",
+      "topic": "care.events",
+      "producer": "care-service",
+      "consumers": [
+        "notification-service",
+        "payment-service"
+      ],
+      "schema": "care/claim-resolved.schema.json",
+      "dataSchemaTitle": "CareClaimResolvedData",
+      "partitionKey": "shipmentId",
+      "description": "Претензію закрито; при компенсації payment-service повертає кошти (9.7)."
+    },
+    {
+      "type": "kite.care.ticket-updated.v1",
+      "topic": "care.events",
+      "producer": "care-service",
+      "consumers": [
+        "notification-service",
+        "payment-service"
+      ],
+      "schema": "care/ticket-updated.schema.json",
+      "dataSchemaTitle": "CareTicketUpdatedData",
+      "partitionKey": "ticketId",
+      "description": "Зміна в тікеті підтримки: новий стан або нове повідомлення."
+    },
+    {
+      "type": "kite.audit.staff-action.v1",
+      "topic": "audit.events",
+      "producer": "*",
+      "consumers": [
+        "audit-service"
+      ],
+      "schema": "audit/staff-action.schema.json",
+      "dataSchemaTitle": "AuditStaffActionData",
+      "partitionKey": "entityId",
+      "description": "Дія персоналу для журналу аудиту. Публікують усі сервіси, споживає audit-service (9.7)."
+    },
+    {
+      "type": "kite.audit.pii-accessed.v1",
+      "topic": "audit.events",
+      "producer": "*",
+      "consumers": [
+        "audit-service"
+      ],
+      "schema": "audit/pii-accessed.schema.json",
+      "dataSchemaTitle": "AuditPiiAccessedData",
+      "partitionKey": "subjectId",
+      "description": "Доступ до персональних даних: окремий тип події, бо його дивляться окремо (6.2, audit_record)."
+    }
+  ]
+}

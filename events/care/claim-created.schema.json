@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/care/claim-created/v1.json",
+  "title": "CareClaimCreatedData",
+  "description": "Претензію створено: вручну клієнтом або автоматично при T15 (LOST).",
+  "type": "object",
+  "required": [
+    "claimId",
+    "shipmentId",
+    "type"
+  ],
+  "properties": {
+    "claimId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "type": {
+      "$ref": "api.schema.json#/$defs/ClaimType"
+    },
+    "claimedAmount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "createdByCustomerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "auto": {
+      "type": "boolean",
+      "description": "true — відкрита системою при підтвердженні втрати (7.2, T15)"
+    }
+  }
+}

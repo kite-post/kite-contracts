@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/audit/pii-accessed/v1.json",
+  "title": "AuditPiiAccessedData",
+  "description": "Доступ до персональних даних: окремий тип події, бо його дивляться окремо (6.2, audit_record).",
+  "type": "object",
+  "required": [
+    "actorUserId",
+    "actorRole",
+    "subjectType",
+    "subjectId",
+    "fields",
+    "purpose"
+  ],
+  "properties": {
+    "actorUserId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "actorRole": {
+      "$ref": "common.schema.json#/$defs/ActorRole"
+    },
+    "subjectType": {
+      "type": "string",
+      "enum": [
+        "CUSTOMER",
+        "SHIPMENT",
+        "ORGANIZATION"
+      ]
+    },
+    "subjectId": {
+      "type": "string"
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Які саме поля відкрив працівник"
+    },
+    "purpose": {
+      "type": "string",
+      "enum": [
+        "SUPPORT_REQUEST",
+        "HANDOVER",
+        "CLAIM_REVIEW",
+        "DISPUTE",
+        "AUDIT"
+      ]
+    },
+    "ip": {
+      "type": "string",
+      "format": "ipv4"
+    }
+  }
+}

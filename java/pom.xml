@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ua.kite</groupId>
+  <artifactId>kite-contracts</artifactId>
+  <version>0.1.0</version>
+  <packaging>jar</packaging>
+
+  <name>kite-contracts</name>
+  <description>
+    Моделі REST-контракту, інтерфейси API для Spring і класи подій CloudEvents,
+    згенеровані з build/kite-contracts.openapi.json. Руками тут нічого не
+    пишеться: правити треба openapi/openapi.yaml та events/**.
+  </description>
+  <url>https://github.com/kite-post/kite-contracts</url>
+
+  <licenses>
+    <license>
+      <name>MIT</name>
+    </license>
+  </licenses>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+    <openapi.generator.version>7.18.0</openapi.generator.version>
+    <spring.version>6.2.14</spring.version>
+    <jackson.version>2.20.1</jackson.version>
+    <spec>${project.basedir}/../build/kite-contracts.openapi.json</spec>
+    <base.package>ua.kite.contracts</base.package>
+  </properties>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/kite-post/kite-contracts</url>
+    </repository>
+  </distributionManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jdk8</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+      <version>3.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openapitools</groupId>
+      <artifactId>jackson-databind-nullable</artifactId>
+      <version>0.2.6</version>
+    </dependency>
+
+    <!-- Інтерфейси контролерів потрібні лише тим, хто піднімає Spring MVC. -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <version>${spring.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.14.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <!-- Схеми їдуть у jar: сервіс валідує події, не тримаючи копій (5.4, п. 6). -->
+      <resource>
+        <directory>${project.basedir}/../openapi</directory>
+        <targetPath>kite/contracts/openapi</targetPath>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../events</directory>
+        <targetPath>kite/contracts/events</targetPath>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../build</directory>
+        <targetPath>kite/contracts</targetPath>
+        <includes>
+          <include>kite-contracts.openapi.json</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator-maven-plugin</artifactId>
+        <version>${openapi.generator.version}</version>
+        <executions>
+          <!-- Моделі + інтерфейси контролерів для 12 Java-сервісів. -->
+          <execution>
+            <id>models-and-api</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${spec}</inputSpec>
+              <generatorName>spring</generatorName>
+              <library>spring-boot</library>
+              <modelPackage>${base.package}.model</modelPackage>
+              <apiPackage>${base.package}.api</apiPackage>
+              <generateApiTests>false</generateApiTests>
+              <generateModelTests>false</generateModelTests>
+              <generateApiDocumentation>false</generateApiDocumentation>
+              <generateModelDocumentation>false</generateModelDocumentation>
+              <documentationProvider>none</documentationProvider>
+              <annotationLibrary>none</annotationLibrary>
+              <configOptions>
+                <documentationProvider>none</documentationProvider>
+                <annotationLibrary>none</annotationLibrary>
+                <interfaceOnly>true</interfaceOnly>
+                <useSpringBoot3>true</useSpringBoot3>
+                <useTags>true</useTags>
+                <useJakartaEe>true</useJakartaEe>
+                <openApiNullable>true</openApiNullable>
+                <dateLibrary>java8</dateLibrary>
+                <useBeanValidation>true</useBeanValidation>
+                <performBeanValidation>false</performBeanValidation>
+                <sourceFolder>src/main/java</sourceFolder>
+                <hideGenerationTimestamp>true</hideGenerationTimestamp>
+              </configOptions>
+            </configuration>
+          </execution>
+          <!-- Клієнт на java.net.http: синхронні виклики ціни і маршруту (5.4, п. 7). -->
+          <execution>
+            <id>client</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${spec}</inputSpec>
+              <generatorName>java</generatorName>
+              <library>native</library>
+              <generateModels>false</generateModels>
+              <generateApiTests>false</generateApiTests>
+              <generateModelTests>false</generateModelTests>
+              <generateApiDocumentation>false</generateApiDocumentation>
+              <generateModelDocumentation>false</generateModelDocumentation>
+              <documentationProvider>none</documentationProvider>
+              <annotationLibrary>none</annotationLibrary>
+              <modelPackage>${base.package}.model</modelPackage>
+              <apiPackage>${base.package}.client</apiPackage>
+              <invokerPackage>${base.package}.client.invoker</invokerPackage>
+              <configOptions>
+                <documentationProvider>none</documentationProvider>
+                <annotationLibrary>none</annotationLibrary>
+                <useJakartaEe>true</useJakartaEe>
+                <dateLibrary>java8</dateLibrary>
+                <openApiNullable>true</openApiNullable>
+                <sourceFolder>src/main/java</sourceFolder>
+                <hideGenerationTimestamp>true</hideGenerationTimestamp>
+              </configOptions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

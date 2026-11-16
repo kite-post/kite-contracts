@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/logistics/trip-arrived/v1.json",
+  "title": "LogisticsTripArrivedData",
+  "description": "Рейс прибув: далі розвантаження (T5, T7).",
+  "type": "object",
+  "required": [
+    "tripId",
+    "tripCode",
+    "toLocationId",
+    "unitCodes"
+  ],
+  "properties": {
+    "tripId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tripCode": {
+      "type": "string",
+      "pattern": "^TR-[0-9]{8}-[0-9]{3}$"
+    },
+    "toLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "delayMinutes": {
+      "type": "integer",
+      "description": "Відхилення від плану; живить прогноз ai-service"
+    },
+    "unitCodes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

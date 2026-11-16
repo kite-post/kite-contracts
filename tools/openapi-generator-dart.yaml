@@ -1,0 +1,16 @@
+# Конфіг openapi-generator для Dart-пакета kite_contracts.
+# Генератор dart (не dart-dio): моделі з власними fromJson/toJson, без
+# build_runner — тож пакет збирається без запуску кодогенерації у застосунку.
+generatorName: dart
+inputSpec: build/kite-contracts.openapi.json
+outputDir: dart
+additionalProperties:
+  pubName: kite_contracts
+  pubLibrary: kite_contracts
+  pubVersion: 0.1.0
+  pubDescription: "Моделі REST-контракту і подій Kite, згенеровані з kite-contracts."
+  pubAuthor: Kite
+  pubHomepage: https://github.com/kite-post/kite-contracts
+  useEnumExtension: true
+globalProperties:
+  skipFormModel: "false"

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/shipment/hold-set/v1.json",
+  "title": "ShipmentHoldSetData",
+  "description": "«Відпустка» клієнта: T11 до 14 днів, або зміна дати утримання (KT32).",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "trackingNumber",
+    "holdUntil"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "trackingNumber": {
+      "$ref": "api.schema.json#/$defs/TrackingNumber"
+    },
+    "actionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "holdUntil": {
+      "type": "string",
+      "format": "date"
+    },
+    "requestedBy": {
+      "type": "string",
+      "enum": [
+        "RECIPIENT",
+        "SUPPORT",
+        "SYSTEM"
+      ]
+    }
+  }
+}

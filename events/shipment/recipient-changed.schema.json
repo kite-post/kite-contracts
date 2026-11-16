@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/shipment/recipient-changed/v1.json",
+  "title": "ShipmentRecipientChangedData",
+  "description": "Змінено отримувача (KT61).",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "trackingNumber",
+    "newRecipientPhoneHash"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "trackingNumber": {
+      "$ref": "api.schema.json#/$defs/TrackingNumber"
+    },
+    "actionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "newRecipientPhoneHash": {
+      "$ref": "common.schema.json#/$defs/PhoneHash"
+    },
+    "trustedPersonId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Якщо отримання передано довіреній особі"
+    }
+  }
+}

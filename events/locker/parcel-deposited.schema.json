@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/locker/parcel-deposited/v1.json",
+  "title": "LockerParcelDepositedData",
+  "description": "Посилку поклали в комірку: прийом у Kite Box (T3) або готовність до видачі (KT31).",
+  "type": "object",
+  "required": [
+    "lockerId",
+    "cellCode",
+    "shipmentId",
+    "depositedBy"
+  ],
+  "properties": {
+    "lockerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "cellCode": {
+      "type": "string"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "parcelId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "depositedBy": {
+      "type": "string",
+      "enum": [
+        "SENDER",
+        "COURIER"
+      ]
+    }
+  }
+}

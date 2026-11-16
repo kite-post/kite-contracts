@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/payment/failed/v1.json",
+  "title": "PaymentFailedData",
+  "description": "Платіж не пройшов: сага відправлення компенсує створення (5.4, п. 4).",
+  "type": "object",
+  "required": [
+    "paymentId",
+    "subject",
+    "subjectId",
+    "amount",
+    "failureCode"
+  ],
+  "properties": {
+    "paymentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "subject": {
+      "$ref": "api.schema.json#/$defs/PaymentSubject"
+    },
+    "subjectId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "amount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "method": {
+      "$ref": "api.schema.json#/$defs/PaymentMethod"
+    },
+    "failureCode": {
+      "type": "string",
+      "enum": [
+        "DECLINED",
+        "INSUFFICIENT_FUNDS",
+        "THREE_DS_FAILED",
+        "TIMEOUT",
+        "PROVIDER_ERROR"
+      ]
+    },
+    "failureMessage": {
+      "type": "string"
+    }
+  }
+}

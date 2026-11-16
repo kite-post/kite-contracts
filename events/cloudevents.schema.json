@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/cloudevents/v1.json",
+  "title": "CloudEvent",
+  "description": "Конверт доменної події Kite: CloudEvents 1.0 у JSON (5.4, п. 6; 8.3, п. 8). Розширення з префіксом kite — свої: час запису, ідентифікатор запиту і зв'язок із причиною.",
+  "type": "object",
+  "required": ["specversion", "id", "source", "type", "time", "data"],
+  "properties": {
+    "specversion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Ідентифікатор події; ключ таблиці processed_event у споживача (8.3, п. 3)"
+    },
+    "source": {
+      "type": "string",
+      "description": "Сервіс-продюсер",
+      "examples": ["/kite/shipment-service", "/kite/scan-service"]
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^kite\\.[a-z]+\\.[a-z-]+\\.v[0-9]+$",
+      "description": "Тип події з суфіксом версії; зміна змісту наявного поля — це новий тип (8.3, п. 8)",
+      "examples": ["kite.shipment.status-changed.v1"]
+    },
+    "subject": {
+      "type": "string",
+      "description": "Сутність, якої стосується подія: номер відправлення, код мішка, рейс"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "occurred_at — момент самої події, первинний час журналу (8.3, п. 4)"
+    },
+    "datacontenttype": {
+      "type": "string",
+      "const": "application/json"
+    },
+    "dataschema": {
+      "type": "string",
+      "format": "uri",
+      "description": "$id схеми, якій відповідає data"
+    },
+    "data": {
+      "type": "object",
+      "description": "Тіло події — одна зі схем events/**"
+    },
+    "kitereceivedat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "received_at — момент запису; тай-брейк порядку і детектор брехливого годинника сканера (8.3, пп. 4-5)"
+    },
+    "kiterequestid": {
+      "type": "string",
+      "description": "X-Request-Id запиту, який породив подію (9.1)"
+    },
+    "kitecausationid": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Подія-причина: нею зв'язані похідні події після розгортання мішка (8.3, п. 2)"
+    },
+    "kitepartitionkey": {
+      "type": "string",
+      "description": "Ключ розділу Kafka; для подій відправлення — shipmentId (8.3, п. 4)"
+    }
+  }
+}

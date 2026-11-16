@@ -1,0 +1,2607 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/api/v1.json",
+  "title": "KiteApiTypes",
+  "description": "Згенеровано з openapi/openapi.yaml — не правити руками. Схеми подій посилаються сюди замість того, щоб копіювати типи.",
+  "$defs": {
+    "Problem": {
+      "type": "object",
+      "description": "Помилка у форматі RFC 9457 (9.1)",
+      "required": [
+        "type",
+        "title",
+        "status"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "format": "uri-reference",
+          "examples": [
+            "https://kite.ua/problems/invalid-transition"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "examples": [
+            "Недозволений перехід стану"
+          ]
+        },
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "examples": [
+            422
+          ]
+        },
+        "detail": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "code": {
+          "type": "string",
+          "description": "Машинний код помилки Kite",
+          "examples": [
+            "SHIPMENT_INVALID_TRANSITION"
+          ]
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Значення `X-Request-Id`"
+        },
+        "errors": {
+          "type": "array",
+          "description": "Помилки полів",
+          "items": {
+            "$ref": "#/$defs/FieldError"
+          }
+        }
+      }
+    },
+    "FieldError": {
+      "type": "object",
+      "required": [
+        "field",
+        "code"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "examples": [
+            "recipient.phone"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "examples": [
+            "INVALID_FORMAT"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "Money": {
+      "type": "object",
+      "description": "Гроші в копійках; валюта завжди UAH (6.1)",
+      "required": [
+        "amountMinor",
+        "currency"
+      ],
+      "properties": {
+        "amountMinor": {
+          "type": "integer",
+          "format": "int64",
+          "examples": [
+            12000
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "UAH"
+          ],
+          "default": "UAH"
+        }
+      }
+    },
+    "TrackingNumber": {
+      "type": "string",
+      "description": "Номер відправлення у форматі UPU S10 (10.1)",
+      "pattern": "^KT\\d{9}UA$",
+      "examples": [
+        "KT123456785UA"
+      ]
+    },
+    "Barcode": {
+      "type": "string",
+      "description": "Штрих-код місця — номер із суфіксом місця (10.1)",
+      "pattern": "^KT\\d{9}UA-\\d{2}$",
+      "examples": [
+        "KT123456785UA-01"
+      ]
+    },
+    "Phone": {
+      "type": "string",
+      "description": "Телефон у E.164",
+      "pattern": "^\\+380\\d{9}$",
+      "examples": [
+        "+380501234567"
+      ]
+    },
+    "Locale": {
+      "type": "string",
+      "enum": [
+        "uk",
+        "en"
+      ]
+    },
+    "Theme": {
+      "type": "string",
+      "enum": [
+        "LIGHT",
+        "DARK",
+        "SYSTEM"
+      ]
+    },
+    "ShipmentStatus": {
+      "type": "string",
+      "description": "Стани з 7.1",
+      "enum": [
+        "DRAFT",
+        "CREATED",
+        "CANCELLED",
+        "ACCEPTED",
+        "IN_TRANSIT",
+        "AT_HUB",
+        "SORTED",
+        "ON_HOLD",
+        "READY_FOR_PICKUP",
+        "DELIVERED",
+        "RETURNED",
+        "LOST"
+      ]
+    },
+    "ShipmentType": {
+      "type": "string",
+      "enum": [
+        "DOCUMENTS",
+        "PARCEL",
+        "CARGO"
+      ]
+    },
+    "ShipmentDirection": {
+      "type": "string",
+      "enum": [
+        "incoming",
+        "outgoing",
+        "archive"
+      ]
+    },
+    "PayerType": {
+      "type": "string",
+      "enum": [
+        "SENDER",
+        "RECIPIENT",
+        "BUSINESS"
+      ]
+    },
+    "DeliveryZone": {
+      "type": "string",
+      "enum": [
+        "CITY",
+        "REGION",
+        "COUNTRY"
+      ]
+    },
+    "ServiceCode": {
+      "type": "string",
+      "description": "Додаткові послуги (бізнес-модель, «Джерела доходу»)",
+      "enum": [
+        "COD",
+        "DECLARED_VALUE",
+        "PACKAGING",
+        "PAID_STORAGE",
+        "REDIRECT_AFTER_ARRIVAL"
+      ]
+    },
+    "LocationType": {
+      "type": "string",
+      "description": "Типи точок мережі (6.2, `location`)",
+      "enum": [
+        "BRANCH",
+        "FREIGHT_BRANCH",
+        "KITE_BOX",
+        "REGIONAL_HUB",
+        "TRUNK_HUB"
+      ]
+    },
+    "LocationService": {
+      "type": "string",
+      "enum": [
+        "SEND",
+        "RECEIVE",
+        "COD",
+        "CARGO",
+        "PACKAGING",
+        "STORAGE"
+      ]
+    },
+    "CellSize": {
+      "type": "string",
+      "enum": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    "EventCode": {
+      "type": "string",
+      "description": "Код події з каталогу 8.2",
+      "pattern": "^KT\\d{2}$",
+      "examples": [
+        "KT30"
+      ]
+    },
+    "GeoPoint": {
+      "type": "object",
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "properties": {
+        "lat": {
+          "type": "number",
+          "format": "double",
+          "examples": [
+            50.4501
+          ]
+        },
+        "lon": {
+          "type": "number",
+          "format": "double",
+          "examples": [
+            30.5234
+          ]
+        }
+      }
+    },
+    "Address": {
+      "type": "object",
+      "required": [
+        "city",
+        "street"
+      ],
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "cityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "street": {
+          "type": "string"
+        },
+        "building": {
+          "type": "string"
+        },
+        "apartment": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string",
+          "pattern": "^\\d{5}$"
+        }
+      }
+    },
+    "Dimensions": {
+      "type": "object",
+      "description": "Габарити в міліметрах (6.1)",
+      "required": [
+        "lengthMm",
+        "widthMm",
+        "heightMm"
+      ],
+      "properties": {
+        "lengthMm": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1
+        },
+        "widthMm": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1
+        },
+        "heightMm": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1
+        }
+      }
+    },
+    "OpeningHours": {
+      "type": "object",
+      "required": [
+        "dayOfWeek",
+        "opensAt",
+        "closesAt"
+      ],
+      "properties": {
+        "dayOfWeek": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "maximum": 7
+        },
+        "opensAt": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}$",
+          "examples": [
+            "09:00"
+          ]
+        },
+        "closesAt": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}$",
+          "examples": [
+            "20:00"
+          ]
+        }
+      }
+    },
+    "LocationRef": {
+      "type": "object",
+      "description": "Короткий опис точки для вкладених об'єктів",
+      "required": [
+        "id",
+        "type",
+        "code"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "type": {
+          "$ref": "#/$defs/LocationType"
+        },
+        "code": {
+          "type": "string",
+          "examples": [
+            "KV-041"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "examples": [
+            "Відділення №41, Київ"
+          ]
+        },
+        "city": {
+          "type": "string"
+        }
+      }
+    },
+    "Location": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/LocationRef"
+        },
+        {
+          "type": "object",
+          "required": [
+            "address",
+            "geo"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/$defs/Address"
+            },
+            "geo": {
+              "$ref": "#/$defs/GeoPoint"
+            },
+            "maxWeightGrams": {
+              "type": "integer",
+              "format": "int64",
+              "examples": [
+                30000
+              ]
+            },
+            "services": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/LocationService"
+              }
+            },
+            "openingHours": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/OpeningHours"
+              }
+            },
+            "openNow": {
+              "type": "boolean"
+            },
+            "freeCellSizes": {
+              "type": "array",
+              "description": "Вільні комірки Kite Box за розміром",
+              "items": {
+                "$ref": "#/$defs/CellSize"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "LocationPage": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Location"
+          }
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "OtpRequest": {
+      "type": "object",
+      "required": [
+        "phone"
+      ],
+      "properties": {
+        "phone": {
+          "$ref": "#/$defs/Phone"
+        }
+      }
+    },
+    "OtpChallenge": {
+      "type": "object",
+      "required": [
+        "challengeId",
+        "expiresAt"
+      ],
+      "properties": {
+        "challengeId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resendAfterSeconds": {
+          "type": "integer",
+          "format": "int32",
+          "examples": [
+            60
+          ]
+        }
+      }
+    },
+    "OtpVerifyRequest": {
+      "type": "object",
+      "required": [
+        "challengeId",
+        "code"
+      ],
+      "properties": {
+        "challengeId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^\\d{6}$"
+        }
+      }
+    },
+    "RefreshRequest": {
+      "type": "object",
+      "required": [
+        "refreshToken"
+      ],
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "TokenPair": {
+      "type": "object",
+      "required": [
+        "accessToken",
+        "refreshToken",
+        "expiresIn",
+        "tokenType"
+      ],
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "tokenType": {
+          "type": "string",
+          "enum": [
+            "Bearer"
+          ]
+        },
+        "expiresIn": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Час життя токена доступу в секундах",
+          "examples": [
+            900
+          ]
+        }
+      }
+    },
+    "Customer": {
+      "type": "object",
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "locale"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "locale": {
+          "$ref": "#/$defs/Locale"
+        },
+        "theme": {
+          "$ref": "#/$defs/Theme"
+        },
+        "quietHoursFrom": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{2}:\\d{2}$"
+        },
+        "quietHoursTo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{2}:\\d{2}$"
+        },
+        "phones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CustomerPhone"
+          }
+        }
+      }
+    },
+    "CustomerPatch": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "locale": {
+          "$ref": "#/$defs/Locale"
+        },
+        "theme": {
+          "$ref": "#/$defs/Theme"
+        },
+        "quietHoursFrom": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quietHoursTo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "CustomerPhone": {
+      "type": "object",
+      "required": [
+        "id",
+        "phone",
+        "primary"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "phone": {
+          "$ref": "#/$defs/Phone"
+        },
+        "primary": {
+          "type": "boolean"
+        },
+        "verifiedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "PhoneRequest": {
+      "type": "object",
+      "required": [
+        "phone"
+      ],
+      "properties": {
+        "phone": {
+          "$ref": "#/$defs/Phone"
+        }
+      }
+    },
+    "PhoneVerifyRequest": {
+      "type": "object",
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^\\d{6}$"
+        }
+      }
+    },
+    "TrustedPerson": {
+      "type": "object",
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "phone"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "phone": {
+          "$ref": "#/$defs/Phone"
+        }
+      }
+    },
+    "TrustedPersonRequest": {
+      "type": "object",
+      "required": [
+        "firstName",
+        "lastName",
+        "phone"
+      ],
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "phone": {
+          "$ref": "#/$defs/Phone"
+        }
+      }
+    },
+    "FavoriteLocation": {
+      "type": "object",
+      "required": [
+        "id",
+        "location"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "label": {
+          "type": "string",
+          "examples": [
+            "Біля дому"
+          ]
+        },
+        "location": {
+          "$ref": "#/$defs/LocationRef"
+        }
+      }
+    },
+    "FavoriteLocationRequest": {
+      "type": "object",
+      "required": [
+        "locationId"
+      ],
+      "properties": {
+        "locationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
+    "FavoriteLocationPatch": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        }
+      }
+    },
+    "NotificationChannel": {
+      "type": "string",
+      "enum": [
+        "PUSH",
+        "EMAIL",
+        "SMS"
+      ]
+    },
+    "NotificationEventType": {
+      "type": "string",
+      "enum": [
+        "SHIPMENT_CREATED",
+        "SHIPMENT_ACCEPTED",
+        "SHIPMENT_IN_TRANSIT",
+        "READY_FOR_PICKUP",
+        "STORAGE_EXPIRING",
+        "DELIVERED",
+        "PAYMENT",
+        "CLAIM",
+        "MARKETING"
+      ]
+    },
+    "NotificationPreferences": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "eventType",
+              "channels"
+            ],
+            "properties": {
+              "eventType": {
+                "$ref": "#/$defs/NotificationEventType"
+              },
+              "channels": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/NotificationChannel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "PushSubscriptionRequest": {
+      "type": "object",
+      "required": [
+        "kind",
+        "token"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "WEB_PUSH",
+            "FCM"
+          ]
+        },
+        "token": {
+          "type": "string",
+          "description": "Endpoint VAPID або токен FCM"
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "deviceName": {
+          "type": "string"
+        }
+      }
+    },
+    "PushSubscription": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "WEB_PUSH",
+            "FCM"
+          ]
+        },
+        "deviceName": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Party": {
+      "type": "object",
+      "description": "Відправник або отримувач",
+      "required": [
+        "firstName",
+        "lastName",
+        "phone"
+      ],
+      "properties": {
+        "customerId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "organizationId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "phone": {
+          "$ref": "#/$defs/Phone"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        }
+      }
+    },
+    "Parcel": {
+      "type": "object",
+      "required": [
+        "id",
+        "seq",
+        "barcode",
+        "declaredWeightGrams"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "barcode": {
+          "$ref": "#/$defs/Barcode"
+        },
+        "declaredWeightGrams": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "declaredDimensions": {
+          "$ref": "#/$defs/Dimensions"
+        },
+        "actualWeightGrams": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int64"
+        },
+        "actualDimensions": {
+          "$ref": "#/$defs/Dimensions"
+        },
+        "status": {
+          "$ref": "#/$defs/ShipmentStatus"
+        }
+      }
+    },
+    "ParcelRequest": {
+      "type": "object",
+      "required": [
+        "declaredWeightGrams",
+        "declaredDimensions"
+      ],
+      "properties": {
+        "declaredWeightGrams": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "declaredDimensions": {
+          "$ref": "#/$defs/Dimensions"
+        }
+      }
+    },
+    "ShipmentServiceItem": {
+      "type": "object",
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ServiceCode"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "price": {
+          "$ref": "#/$defs/Money"
+        }
+      }
+    },
+    "RouteStop": {
+      "type": "object",
+      "required": [
+        "seq",
+        "location",
+        "kind"
+      ],
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "location": {
+          "$ref": "#/$defs/LocationRef"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ORIGIN",
+            "HUB",
+            "DESTINATION"
+          ]
+        },
+        "plannedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "EtaPrediction": {
+      "type": "object",
+      "description": "Прогноз ai-service",
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "to": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "confidence": {
+          "type": "number",
+          "format": "double",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "modelVersion": {
+          "type": "string"
+        }
+      }
+    },
+    "Shipment": {
+      "type": "object",
+      "required": [
+        "id",
+        "trackingNumber",
+        "type",
+        "status",
+        "sender",
+        "recipient",
+        "origin",
+        "destination",
+        "payer",
+        "parcels",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "trackingNumber": {
+          "$ref": "#/$defs/TrackingNumber"
+        },
+        "type": {
+          "$ref": "#/$defs/ShipmentType"
+        },
+        "status": {
+          "$ref": "#/$defs/ShipmentStatus"
+        },
+        "statusText": {
+          "type": "string",
+          "description": "Формулювання для клієнта (7.1), мовою з `Accept-Language`",
+          "examples": [
+            "Можна забирати"
+          ]
+        },
+        "partiallyDelivered": {
+          "type": "boolean",
+          "description": "Частина місць уже видана (7, вступ)"
+        },
+        "sender": {
+          "$ref": "#/$defs/Party"
+        },
+        "recipient": {
+          "$ref": "#/$defs/Party"
+        },
+        "origin": {
+          "$ref": "#/$defs/LocationRef"
+        },
+        "destination": {
+          "$ref": "#/$defs/LocationRef"
+        },
+        "payer": {
+          "$ref": "#/$defs/PayerType"
+        },
+        "declaredValue": {
+          "$ref": "#/$defs/Money"
+        },
+        "codAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "priceTotal": {
+          "$ref": "#/$defs/Money"
+        },
+        "paid": {
+          "type": "boolean"
+        },
+        "parcels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/Parcel"
+          }
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShipmentServiceItem"
+          }
+        },
+        "route": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RouteStop"
+          }
+        },
+        "eta": {
+          "$ref": "#/$defs/EtaPrediction"
+        },
+        "returnOf": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Якщо це повернення — ідентифікатор оригіналу"
+        },
+        "storageFreeUntil": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "holdUntil": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "version": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Оптимістичне блокування (6.1)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "CreateShipmentRequest": {
+      "type": "object",
+      "required": [
+        "type",
+        "recipient",
+        "originLocationId",
+        "destinationLocationId",
+        "payer",
+        "parcels"
+      ],
+      "properties": {
+        "draft": {
+          "type": "boolean",
+          "default": false,
+          "description": "true — лишити в DRAFT; false — одразу підтвердити (T1)"
+        },
+        "type": {
+          "$ref": "#/$defs/ShipmentType"
+        },
+        "sender": {
+          "$ref": "#/$defs/Party"
+        },
+        "recipient": {
+          "$ref": "#/$defs/Party"
+        },
+        "originLocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "destinationLocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "payer": {
+          "$ref": "#/$defs/PayerType"
+        },
+        "declaredValue": {
+          "$ref": "#/$defs/Money"
+        },
+        "codAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "parcels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/ParcelRequest"
+          }
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShipmentServiceItem"
+          }
+        },
+        "promoCode": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "ShipmentPatch": {
+      "type": "object",
+      "description": "Зміна чернетки; поля, яких немає, лишаються як були",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/ShipmentType"
+        },
+        "recipient": {
+          "$ref": "#/$defs/Party"
+        },
+        "originLocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "destinationLocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "payer": {
+          "$ref": "#/$defs/PayerType"
+        },
+        "declaredValue": {
+          "$ref": "#/$defs/Money"
+        },
+        "codAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "parcels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ParcelRequest"
+          }
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShipmentServiceItem"
+          }
+        },
+        "comment": {
+          "type": "string"
+        }
+      }
+    },
+    "ShipmentSummary": {
+      "type": "object",
+      "description": "Рядок дашборда",
+      "required": [
+        "id",
+        "trackingNumber",
+        "status",
+        "direction"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "trackingNumber": {
+          "$ref": "#/$defs/TrackingNumber"
+        },
+        "status": {
+          "$ref": "#/$defs/ShipmentStatus"
+        },
+        "statusText": {
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/ShipmentDirection"
+        },
+        "counterpartName": {
+          "type": "string",
+          "description": "Другий бік відправлення"
+        },
+        "destination": {
+          "$ref": "#/$defs/LocationRef"
+        },
+        "eta": {
+          "$ref": "#/$defs/EtaPrediction"
+        },
+        "priceTotal": {
+          "$ref": "#/$defs/Money"
+        },
+        "codAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "ShipmentPage": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShipmentSummary"
+          }
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "CancelShipmentRequest": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "TimelineEvent": {
+      "type": "object",
+      "required": [
+        "eventId",
+        "code",
+        "occurredAt"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "$ref": "#/$defs/EventCode"
+        },
+        "title": {
+          "type": "string",
+          "examples": [
+            "Прибуло у відділення призначення"
+          ]
+        },
+        "statusAfter": {
+          "$ref": "#/$defs/ShipmentStatus"
+        },
+        "location": {
+          "$ref": "#/$defs/LocationRef"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "emsevt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Код UPU EMSEVT, якщо подія є в базовому наборі (8.2)"
+        }
+      }
+    },
+    "Timeline": {
+      "type": "object",
+      "required": [
+        "shipmentId",
+        "status",
+        "events"
+      ],
+      "properties": {
+        "shipmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "trackingNumber": {
+          "$ref": "#/$defs/TrackingNumber"
+        },
+        "status": {
+          "$ref": "#/$defs/ShipmentStatus"
+        },
+        "statusText": {
+          "type": "string"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineEvent"
+          }
+        },
+        "eta": {
+          "$ref": "#/$defs/EtaPrediction"
+        }
+      }
+    },
+    "PublicTracking": {
+      "type": "object",
+      "description": "Публічний статус без персональних даних",
+      "required": [
+        "trackingNumber",
+        "status",
+        "events"
+      ],
+      "properties": {
+        "trackingNumber": {
+          "$ref": "#/$defs/TrackingNumber"
+        },
+        "status": {
+          "$ref": "#/$defs/ShipmentStatus"
+        },
+        "statusText": {
+          "type": "string"
+        },
+        "originCity": {
+          "type": "string"
+        },
+        "destinationCity": {
+          "type": "string"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineEvent"
+          }
+        },
+        "eta": {
+          "$ref": "#/$defs/EtaPrediction"
+        }
+      }
+    },
+    "DeliveryActionType": {
+      "type": "string",
+      "description": "Дії керування доставкою (7.4)",
+      "enum": [
+        "redirect",
+        "hold",
+        "change-recipient",
+        "extend-storage",
+        "refuse"
+      ]
+    },
+    "DeliveryActionStatus": {
+      "type": "string",
+      "enum": [
+        "REQUESTED",
+        "AWAITING_PAYMENT",
+        "APPLIED",
+        "REJECTED"
+      ]
+    },
+    "AvailableAction": {
+      "type": "object",
+      "required": [
+        "action",
+        "available"
+      ],
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/DeliveryActionType"
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "price": {
+          "$ref": "#/$defs/Money"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Чому недоступна"
+        }
+      }
+    },
+    "DeliveryActionRequest": {
+      "type": "object",
+      "properties": {
+        "destinationLocationId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Для redirect"
+        },
+        "holdUntil": {
+          "type": "string",
+          "format": "date",
+          "description": "Для hold і extend-storage (до 14 днів, 7.2 T11)"
+        },
+        "recipient": {
+          "$ref": "#/$defs/Party"
+        },
+        "trustedPersonId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "DeliveryAction": {
+      "type": "object",
+      "required": [
+        "id",
+        "shipmentId",
+        "action",
+        "status",
+        "requestedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "action": {
+          "$ref": "#/$defs/DeliveryActionType"
+        },
+        "status": {
+          "$ref": "#/$defs/DeliveryActionStatus"
+        },
+        "price": {
+          "$ref": "#/$defs/Money"
+        },
+        "payment": {
+          "$ref": "#/$defs/Payment"
+        },
+        "requestedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "PaymentSubject": {
+      "type": "string",
+      "enum": [
+        "SHIPMENT",
+        "DELIVERY_ACTION",
+        "STORAGE_BOOKING",
+        "PAID_STORAGE",
+        "COD"
+      ]
+    },
+    "PaymentMethod": {
+      "type": "string",
+      "enum": [
+        "CARD",
+        "BONUS",
+        "CASH",
+        "INVOICE"
+      ]
+    },
+    "PaymentStatus": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "AWAITING_3DS",
+        "SUCCEEDED",
+        "FAILED",
+        "REFUNDED"
+      ]
+    },
+    "CreatePaymentRequest": {
+      "type": "object",
+      "required": [
+        "subject",
+        "subjectId",
+        "method"
+      ],
+      "properties": {
+        "subject": {
+          "$ref": "#/$defs/PaymentSubject"
+        },
+        "subjectId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "$ref": "#/$defs/PaymentMethod"
+        },
+        "bonusAmountMinor": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Скільки списати балами (до 50% суми)"
+        },
+        "promoCode": {
+          "type": "string"
+        },
+        "returnUrl": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "Payment": {
+      "type": "object",
+      "required": [
+        "id",
+        "subject",
+        "subjectId",
+        "amount",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "subject": {
+          "$ref": "#/$defs/PaymentSubject"
+        },
+        "subjectId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "amount": {
+          "$ref": "#/$defs/Money"
+        },
+        "bonusApplied": {
+          "$ref": "#/$defs/Money"
+        },
+        "method": {
+          "$ref": "#/$defs/PaymentMethod"
+        },
+        "status": {
+          "$ref": "#/$defs/PaymentStatus"
+        },
+        "redirectUrl": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "Сторінка mock-pay, поки платіж не завершено"
+        },
+        "providerReference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "PromoCodeValidateRequest": {
+      "type": "object",
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "amount": {
+          "$ref": "#/$defs/Money"
+        }
+      }
+    },
+    "PromoCodeValidation": {
+      "type": "object",
+      "required": [
+        "code",
+        "valid"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "valid": {
+          "type": "boolean"
+        },
+        "discount": {
+          "$ref": "#/$defs/Money"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "BonusTransaction": {
+      "type": "object",
+      "required": [
+        "id",
+        "amountMinor",
+        "kind",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "amountMinor": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Додатне — нарахування, відʼємне — списання"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "EARNED",
+            "SPENT",
+            "EXPIRED"
+          ]
+        },
+        "shipmentId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "BonusAccount": {
+      "type": "object",
+      "required": [
+        "balance"
+      ],
+      "properties": {
+        "balance": {
+          "$ref": "#/$defs/Money"
+        },
+        "expiringSoon": {
+          "$ref": "#/$defs/Money"
+        },
+        "transactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BonusTransaction"
+          }
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "QuoteRequest": {
+      "type": "object",
+      "required": [
+        "type",
+        "originLocationId",
+        "destinationLocationId",
+        "parcels"
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/ShipmentType"
+        },
+        "originLocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "destinationLocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "parcels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ParcelRequest"
+          }
+        },
+        "declaredValue": {
+          "$ref": "#/$defs/Money"
+        },
+        "codAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ServiceCode"
+          }
+        },
+        "promoCode": {
+          "type": "string"
+        }
+      }
+    },
+    "QuoteLine": {
+      "type": "object",
+      "required": [
+        "code",
+        "title",
+        "amount"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "examples": [
+            "DELIVERY"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "amount": {
+          "$ref": "#/$defs/Money"
+        }
+      }
+    },
+    "Quote": {
+      "type": "object",
+      "required": [
+        "total",
+        "lines",
+        "zone",
+        "chargeableWeightGrams",
+        "expiresAt"
+      ],
+      "properties": {
+        "total": {
+          "$ref": "#/$defs/Money"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/QuoteLine"
+          }
+        },
+        "zone": {
+          "$ref": "#/$defs/DeliveryZone"
+        },
+        "chargeableWeightGrams": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Більша з фактичної та об'ємної ваги (бізнес-модель)"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Розрахунок кешується на 15 хв (6.2, `quote`)"
+        }
+      }
+    },
+    "OpenCellRequest": {
+      "type": "object",
+      "required": [
+        "purpose"
+      ],
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "PICKUP",
+            "DROPOFF",
+            "STORAGE"
+          ]
+        },
+        "shipmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "bookingId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "pickupCode": {
+          "type": "string",
+          "pattern": "^\\d{6}$"
+        }
+      }
+    },
+    "OpenCellResult": {
+      "type": "object",
+      "required": [
+        "cellCode",
+        "opensAt",
+        "expiresAt"
+      ],
+      "properties": {
+        "cellCode": {
+          "type": "string",
+          "examples": [
+            "KV-BOX-07-A01"
+          ]
+        },
+        "size": {
+          "$ref": "#/$defs/CellSize"
+        },
+        "opensAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "StorageBookingRequest": {
+      "type": "object",
+      "required": [
+        "locationId",
+        "size",
+        "days"
+      ],
+      "properties": {
+        "locationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "size": {
+          "$ref": "#/$defs/CellSize"
+        },
+        "days": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1,
+          "maximum": 14
+        }
+      }
+    },
+    "StorageBooking": {
+      "type": "object",
+      "required": [
+        "id",
+        "locationId",
+        "size",
+        "status",
+        "expiresAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "locationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "cellCode": {
+          "type": "string"
+        },
+        "size": {
+          "$ref": "#/$defs/CellSize"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "AWAITING_PAYMENT",
+            "ACTIVE",
+            "EXPIRED",
+            "CLOSED"
+          ]
+        },
+        "price": {
+          "$ref": "#/$defs/Money"
+        },
+        "payment": {
+          "$ref": "#/$defs/Payment"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "StorageBookingPage": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StorageBooking"
+          }
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ClaimType": {
+      "type": "string",
+      "enum": [
+        "DELAY",
+        "DAMAGE",
+        "LOSS",
+        "SHORTAGE",
+        "WRONG_DELIVERY"
+      ]
+    },
+    "ClaimStatus": {
+      "type": "string",
+      "enum": [
+        "NEW",
+        "IN_REVIEW",
+        "APPROVED",
+        "REJECTED",
+        "COMPENSATED"
+      ]
+    },
+    "CreateClaimRequest": {
+      "type": "object",
+      "required": [
+        "shipmentId",
+        "type",
+        "description"
+      ],
+      "properties": {
+        "shipmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "type": {
+          "$ref": "#/$defs/ClaimType"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "claimedAmount": {
+          "$ref": "#/$defs/Money"
+        }
+      }
+    },
+    "Claim": {
+      "type": "object",
+      "required": [
+        "id",
+        "shipmentId",
+        "type",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "type": {
+          "$ref": "#/$defs/ClaimType"
+        },
+        "status": {
+          "$ref": "#/$defs/ClaimStatus"
+        },
+        "description": {
+          "type": "string"
+        },
+        "claimedAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "approvedAmount": {
+          "$ref": "#/$defs/Money"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "url"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "ClaimPage": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Claim"
+          }
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "AttachmentRequest": {
+      "type": "object",
+      "required": [
+        "fileName",
+        "contentType",
+        "sizeBytes"
+      ],
+      "properties": {
+        "fileName": {
+          "type": "string"
+        },
+        "contentType": {
+          "type": "string",
+          "enum": [
+            "image/jpeg",
+            "image/png",
+            "image/heic",
+            "application/pdf"
+          ]
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "format": "int64",
+          "maximum": 10485760
+        }
+      }
+    },
+    "UploadTicket": {
+      "type": "object",
+      "required": [
+        "attachmentId",
+        "uploadUrl",
+        "expiresAt"
+      ],
+      "properties": {
+        "attachmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "uploadUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Підписане посилання PUT у MinIO"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "TicketStatus": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "WAITING_CUSTOMER",
+        "WAITING_AGENT",
+        "CLOSED"
+      ]
+    },
+    "CreateTicketRequest": {
+      "type": "object",
+      "required": [
+        "subject",
+        "message"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "shipmentId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        }
+      }
+    },
+    "TicketMessageRequest": {
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      }
+    },
+    "TicketMessage": {
+      "type": "object",
+      "required": [
+        "id",
+        "author",
+        "message",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "author": {
+          "type": "string",
+          "enum": [
+            "CUSTOMER",
+            "AGENT",
+            "SYSTEM"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Ticket": {
+      "type": "object",
+      "required": [
+        "id",
+        "subject",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TicketStatus"
+        },
+        "shipmentId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TicketMessage"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "TicketPage": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ticket"
+          }
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ExternalTrackingRequest": {
+      "type": "object",
+      "required": [
+        "carrier",
+        "trackingNumber"
+      ],
+      "properties": {
+        "carrier": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "trackingNumber": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
+    "ExternalTracking": {
+      "type": "object",
+      "required": [
+        "id",
+        "carrier",
+        "trackingNumber"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "carrier": {
+          "type": "string"
+        },
+        "trackingNumber": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "manualStatus": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "ScanOperation": {
+      "type": "string",
+      "description": "Режими роботи сканера (10.2, п. 4)",
+      "enum": [
+        "ACCEPT",
+        "UNLOAD",
+        "SORT",
+        "FILL_UNIT",
+        "LOAD",
+        "HANDOVER"
+      ]
+    },
+    "ScanOutcome": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "WARNING",
+        "ERROR"
+      ]
+    },
+    "ScanWarningCode": {
+      "type": "string",
+      "enum": [
+        "DUPLICATE",
+        "WRONG_HUB",
+        "MISSORT",
+        "UNKNOWN_BARCODE",
+        "NOT_EXPECTED",
+        "UNIT_CLOSED"
+      ]
+    },
+    "ScanItem": {
+      "type": "object",
+      "required": [
+        "scanId",
+        "barcode",
+        "operation",
+        "scannedAt"
+      ],
+      "properties": {
+        "scanId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "UUID, згенерований на телефоні — ключ ідемпотентності (10.2, п. 5)"
+        },
+        "barcode": {
+          "type": "string",
+          "description": "Штрих-код місця, мішка, рейсу або комірки",
+          "examples": [
+            "KT123456785UA-01"
+          ]
+        },
+        "operation": {
+          "$ref": "#/$defs/ScanOperation"
+        },
+        "scannedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Час на пристрої; `occurred_at` журналу (8.3, п. 4)"
+        },
+        "locationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "unitCode": {
+          "type": "string",
+          "description": "Мішок або контейнер, у який кладемо"
+        },
+        "tripId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "weightGrams": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "dimensions": {
+          "$ref": "#/$defs/Dimensions"
+        }
+      }
+    },
+    "ScanBatch": {
+      "type": "object",
+      "required": [
+        "deviceId",
+        "items"
+      ],
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sessionId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Сесія пейрингу з Kite Ops"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/ScanItem"
+          }
+        }
+      }
+    },
+    "ScanResult": {
+      "type": "object",
+      "required": [
+        "scanId",
+        "outcome"
+      ],
+      "properties": {
+        "scanId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "outcome": {
+          "$ref": "#/$defs/ScanOutcome"
+        },
+        "warningCode": {
+          "$ref": "#/$defs/ScanWarningCode"
+        },
+        "message": {
+          "type": "string"
+        },
+        "shipmentId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "statusAfter": {
+          "$ref": "#/$defs/ShipmentStatus"
+        },
+        "sortHint": {
+          "$ref": "#/$defs/SortHint"
+        }
+      }
+    },
+    "ScanBatchResult": {
+      "type": "object",
+      "required": [
+        "results"
+      ],
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScanResult"
+          }
+        }
+      }
+    },
+    "SortHint": {
+      "type": "object",
+      "description": "Підказка сортувальнику (5.5, п. 2)",
+      "required": [
+        "line",
+        "direction"
+      ],
+      "properties": {
+        "line": {
+          "type": "string",
+          "examples": [
+            "Лінія 7"
+          ]
+        },
+        "direction": {
+          "type": "string",
+          "examples": [
+            "Львів"
+          ]
+        },
+        "nextLocation": {
+          "$ref": "#/$defs/LocationRef"
+        },
+        "unitCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

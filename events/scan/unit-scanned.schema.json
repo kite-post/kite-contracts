@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/scan/unit-scanned/v1.json",
+  "title": "ScanUnitScannedData",
+  "description": "Скан мішка або контейнера. Список shipmentIds знятий транзакційно в момент скану; tracking-service розкладає подію віялом (8.3, п. 2).",
+  "type": "object",
+  "required": [
+    "scanId",
+    "unitCode",
+    "operation",
+    "locationId",
+    "deviceId",
+    "shipmentIds"
+  ],
+  "properties": {
+    "scanId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "unitCode": {
+      "type": "string",
+      "description": "Код мішка або контейнера: BG/CT + 10 цифр (10.1)",
+      "pattern": "^(BG|CT)[0-9]{10}$"
+    },
+    "operation": {
+      "$ref": "api.schema.json#/$defs/ScanOperation"
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "deviceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tripId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Якщо мішок сканують у рейс"
+    },
+    "shipmentIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "Вміст мішка на момент скану — навмисно всередині події"
+    },
+    "outcome": {
+      "$ref": "api.schema.json#/$defs/ScanOutcome"
+    },
+    "warningCode": {
+      "$ref": "api.schema.json#/$defs/ScanWarningCode"
+    }
+  }
+}

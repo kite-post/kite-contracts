@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/customer/phone-verified/v1.json",
+  "title": "CustomerPhoneVerifiedData",
+  "description": "Номер підтверджено: tracking-service перебудовує індекс «мені» (9.7).",
+  "type": "object",
+  "required": [
+    "customerId",
+    "phoneHash"
+  ],
+  "properties": {
+    "customerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "phoneHash": {
+      "$ref": "common.schema.json#/$defs/PhoneHash"
+    },
+    "primary": {
+      "type": "boolean"
+    }
+  }
+}

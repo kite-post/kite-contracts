@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/customer/phone-removed/v1.json",
+  "title": "CustomerPhoneRemovedData",
+  "description": "Номер прибрано: відправлення на нього більше не показуємо в дашборді «мені».",
+  "type": "object",
+  "required": [
+    "customerId",
+    "phoneHash"
+  ],
+  "properties": {
+    "customerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "phoneHash": {
+      "$ref": "common.schema.json#/$defs/PhoneHash"
+    }
+  }
+}

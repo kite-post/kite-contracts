@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/locker/parcel-collected/v1.json",
+  "title": "LockerParcelCollectedData",
+  "description": "Посилку забрали з комірки: видача (T8, KT50).",
+  "type": "object",
+  "required": [
+    "lockerId",
+    "cellCode",
+    "shipmentId",
+    "collectedBy"
+  ],
+  "properties": {
+    "lockerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "cellCode": {
+      "type": "string"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "parcelId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "collectedBy": {
+      "type": "string",
+      "enum": [
+        "RECIPIENT",
+        "TRUSTED_PERSON",
+        "COURIER"
+      ]
+    }
+  }
+}

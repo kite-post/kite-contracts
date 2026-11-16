@@ -1,0 +1,17 @@
+# Конфіг oapi-codegen: з одного зведеного документа — моделі, клієнт і
+# серверні інтерфейси для пʼяти Go-сервісів. Генерується в пакет kite,
+# тож у коді читається як kite.Shipment, kite.ShipmentStatusChangedEvent.
+package: kite
+output: kite/kite.gen.go
+generate:
+  models: true
+  client: true
+  std-http-server: true
+  strict-server: false
+  embedded-spec: false
+output-options:
+  skip-prune: true
+  skip-fmt: false
+  user-templates: {}
+compatibility:
+  always-prefix-enum-values: false

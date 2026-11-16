@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/payment/succeeded/v1.json",
+  "title": "PaymentSucceededData",
+  "description": "Платіж успішний (KT02 для оплати доставки). Споживають shipment, notification, business (9.7).",
+  "type": "object",
+  "required": [
+    "paymentId",
+    "subject",
+    "subjectId",
+    "amount",
+    "method"
+  ],
+  "properties": {
+    "paymentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "subject": {
+      "$ref": "api.schema.json#/$defs/PaymentSubject"
+    },
+    "subjectId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "amount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "bonusApplied": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "method": {
+      "$ref": "api.schema.json#/$defs/PaymentMethod"
+    },
+    "payerCustomerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "providerReference": {
+      "type": "string",
+      "description": "Ідентифікатор транзакції в mock-pay"
+    }
+  }
+}

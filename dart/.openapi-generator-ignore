@@ -1,0 +1,10 @@
+# Що генератору не чіпати в цьому пакеті.
+# Документацію по моделях не тримаємо: джерело правди — openapi/openapi.yaml
+# і events/**, а 180 файлів .md лише шумлять у diff.
+doc/**
+test/**
+git_push.sh
+.travis.yml
+analysis_options.yaml
+lib/kite_registry.dart
+lib/kite_contracts.dart

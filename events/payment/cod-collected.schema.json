@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/payment/cod-collected/v1.json",
+  "title": "PaymentCodCollectedData",
+  "description": "Післяплату зібрано при видачі; далі — виплата відправнику (6.2, cod).",
+  "type": "object",
+  "required": [
+    "codId",
+    "shipmentId",
+    "amount",
+    "method"
+  ],
+  "properties": {
+    "codId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "amount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "feeAmount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "method": {
+      "$ref": "api.schema.json#/$defs/PaymentMethod"
+    },
+    "collectedAtLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "collectedByUserId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

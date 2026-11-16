@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/shipment/created/v1.json",
+  "title": "ShipmentCreatedData",
+  "description": "Накладну створено (KT01). Продюсер — shipment-service, єдиний власник стану (8.1).",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "trackingNumber",
+    "type",
+    "status",
+    "originLocationId",
+    "destinationLocationId",
+    "payer",
+    "parcelCount"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "trackingNumber": {
+      "$ref": "api.schema.json#/$defs/TrackingNumber"
+    },
+    "type": {
+      "$ref": "api.schema.json#/$defs/ShipmentType"
+    },
+    "status": {
+      "$ref": "api.schema.json#/$defs/ShipmentStatus"
+    },
+    "draft": {
+      "type": "boolean",
+      "description": "Створено як чернетку (DRAFT)"
+    },
+    "senderCustomerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "senderPhoneHash": {
+      "$ref": "common.schema.json#/$defs/PhoneHash"
+    },
+    "recipientPhoneHash": {
+      "$ref": "common.schema.json#/$defs/PhoneHash"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Якщо створив бізнес через API-ключ"
+    },
+    "originLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "destinationLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "payer": {
+      "$ref": "api.schema.json#/$defs/PayerType"
+    },
+    "parcelCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "declaredValue": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "codAmount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "priceTotal": {
+      "$ref": "api.schema.json#/$defs/Money"
+    }
+  }
+}

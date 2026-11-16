@@ -1,0 +1,2731 @@
+openapi: 3.0.3
+info:
+  title: Kite API
+  version: 0.1.0
+  description: |
+    Зовнішній REST/JSON-контракт Kite за шлюзом (`/api/v1`).
+
+    Джерело правди для цього файлу — розділ 9 документації Kite; правила з 9.1
+    (ідемпотентність, помилки, пагінація, ETag, трасування) описані тут
+    параметрами й відповідями в `components`, а не словами.
+
+    PATCH всюди має семантику злиття (RFC 7396): поля, яких немає в тілі,
+    лишаються як були. Тіло їде як `application/json` — так його розуміють усі
+    три генератори.
+
+    У цій версії описано ядро: публічна частина й автентифікація (9.2),
+    клієнтський кабінет (9.3) і прийом сканів (9.5). Kite Business і решта
+    Kite Ops дописуються разом із відповідними сервісами.
+  contact:
+    name: Kite
+    url: https://github.com/kite-post
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Локальний стенд (kite-infra)
+  - url: https://api.kite.ua/api/v1
+    description: Прод (у моделі не існує)
+
+tags:
+  - name: auth
+    description: Вхід за одноразовим кодом і оновлення токенів
+  - name: public
+    description: Публічні ендпоїнти без автентифікації
+  - name: profile
+    description: Профіль клієнта, телефони, довірені особи, налаштування
+  - name: shipments
+    description: Відправлення та керування доставкою
+  - name: payments
+    description: Оплата, бали, промокоди
+  - name: lockers
+    description: "Kite Box: відкриття комірки, камера зберігання"
+  - name: care
+    description: Претензії і підтримка
+  - name: scans
+    description: Скани персоналу
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/otp:
+    post:
+      tags: [auth]
+      operationId: requestOtp
+      summary: Надіслати код на телефон
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '202':
+          description: Код надіслано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpChallenge'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /auth/otp/verify:
+    post:
+      tags: [auth]
+      operationId: verifyOtp
+      summary: Перевірити код і отримати токени
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+      responses:
+        '200':
+          description: Токени видано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refreshToken
+      summary: Оновити токен доступу
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Новий токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /public/track/{trackingNumber}:
+    get:
+      tags: [public]
+      operationId: trackPublic
+      summary: Публічний статус без персональних даних
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TrackingNumberPath'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Публічне відстеження
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicTracking'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /public/locations:
+    get:
+      tags: [public]
+      operationId: listPublicLocations
+      summary: Точки на карті
+      security: []
+      parameters:
+        - name: bbox
+          in: query
+          description: Прямокутник `minLon,minLat,maxLon,maxLat`
+          schema:
+            type: string
+            example: 30.3,50.3,30.7,50.6
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/LocationType'
+        - name: service
+          in: query
+          description: Фільтр за послугою точки
+          schema:
+            $ref: '#/components/schemas/LocationService'
+        - name: openNow
+          in: query
+          schema:
+            type: boolean
+        - name: freeCellSize
+          in: query
+          description: Є вільна комірка такого розміру
+          schema:
+            $ref: '#/components/schemas/CellSize'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Сторінка точок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationPage'
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /public/locations/{id}:
+    get:
+      tags: [public]
+      operationId: getPublicLocation
+      summary: Картка точки
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Точка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /public/quotes:
+    post:
+      tags: [public]
+      operationId: calculateQuote
+      summary: Калькулятор вартості
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteRequest'
+      responses:
+        '200':
+          description: Розрахунок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me:
+    get:
+      tags: [profile]
+      operationId: getMe
+      summary: Профіль клієнта
+      responses:
+        '200':
+          description: Профіль
+          headers:
+            ETag:
+              description: Версія ресурсу для `If-Match`
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [profile]
+      operationId: updateMe
+      summary: Змінити профіль, мову, тему, тиху годину
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerPatch'
+      responses:
+        '200':
+          description: Змінений профіль
+          headers:
+            ETag:
+              description: Версія ресурсу для `If-Match`
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '409': { $ref: '#/components/responses/Conflict' }
+        '412': { $ref: '#/components/responses/PreconditionFailed' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/phones:
+    get:
+      tags: [profile]
+      operationId: listPhones
+      summary: Номери клієнта
+      responses:
+        '200':
+          description: Номери
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerPhone'
+    post:
+      tags: [profile]
+      operationId: addPhone
+      summary: Додати номер (до трьох)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneRequest'
+      responses:
+        '201':
+          description: Номер додано, надіслано код
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPhone'
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/phones/{id}/verify:
+    post:
+      tags: [profile]
+      operationId: verifyPhone
+      summary: Підтвердити номер кодом
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneVerifyRequest'
+      responses:
+        '200':
+          description: Номер підтверджено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPhone'
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/phones/{id}/activate:
+    post:
+      tags: [profile]
+      operationId: activatePhone
+      summary: Зробити номер основним
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Номер основний
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPhone'
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/phones/{id}:
+    delete:
+      tags: [profile]
+      operationId: deletePhone
+      summary: Прибрати номер
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Прибрано }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/trusted-persons:
+    get:
+      tags: [profile]
+      operationId: listTrustedPersons
+      summary: Довірені особи
+      responses:
+        '200':
+          description: Довірені особи
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrustedPerson'
+    post:
+      tags: [profile]
+      operationId: addTrustedPerson
+      summary: Додати довірену особу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrustedPersonRequest'
+      responses:
+        '201':
+          description: Додано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedPerson'
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/trusted-persons/{id}:
+    delete:
+      tags: [profile]
+      operationId: deleteTrustedPerson
+      summary: Прибрати довірену особу
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Прибрано }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /me/favorite-locations:
+    get:
+      tags: [profile]
+      operationId: listFavoriteLocations
+      summary: Улюблені точки
+      responses:
+        '200':
+          description: Улюблені точки
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FavoriteLocation'
+    post:
+      tags: [profile]
+      operationId: addFavoriteLocation
+      summary: Додати улюблену точку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavoriteLocationRequest'
+      responses:
+        '201':
+          description: Додано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavoriteLocation'
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/favorite-locations/{id}:
+    patch:
+      tags: [profile]
+      operationId: updateFavoriteLocation
+      summary: Перейменувати улюблену точку
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavoriteLocationPatch'
+      responses:
+        '200':
+          description: Змінено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavoriteLocation'
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [profile]
+      operationId: deleteFavoriteLocation
+      summary: Прибрати улюблену точку
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Прибрано }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /me/notification-preferences:
+    get:
+      tags: [profile]
+      operationId: getNotificationPreferences
+      summary: Налаштування сповіщень
+      responses:
+        '200':
+          description: Налаштування
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+    put:
+      tags: [profile]
+      operationId: replaceNotificationPreferences
+      summary: Замінити налаштування сповіщень
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferences'
+      responses:
+        '200':
+          description: Налаштування
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/push-subscriptions:
+    post:
+      tags: [profile]
+      operationId: addPushSubscription
+      summary: Підписка web push або FCM
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushSubscriptionRequest'
+      responses:
+        '201':
+          description: Підписано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushSubscription'
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/push-subscriptions/{id}:
+    delete:
+      tags: [profile]
+      operationId: deletePushSubscription
+      summary: Прибрати підписку
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Прибрано }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /me/bonuses:
+    get:
+      tags: [payments]
+      operationId: getBonusAccount
+      summary: Баланс балів і проводки
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Баланс і останні проводки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BonusAccount'
+
+  /me/external-tracking:
+    get:
+      tags: [shipments]
+      operationId: listExternalTracking
+      summary: Сторонні номери
+      responses:
+        '200':
+          description: Сторонні номери
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExternalTracking'
+    post:
+      tags: [shipments]
+      operationId: addExternalTracking
+      summary: Додати сторонній номер
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalTrackingRequest'
+      responses:
+        '201':
+          description: Додано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalTracking'
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/external-tracking/{id}:
+    delete:
+      tags: [shipments]
+      operationId: deleteExternalTracking
+      summary: Прибрати сторонній номер
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Прибрано }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /shipments:
+    post:
+      tags: [shipments]
+      operationId: createShipment
+      summary: Створити чернетку або одразу підтверджене відправлення
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShipmentRequest'
+      responses:
+        '201':
+          description: Відправлення створено
+          headers:
+            ETag:
+              description: Версія ресурсу для `If-Match`
+              schema:
+                type: string
+            Location:
+              description: Шлях створеного відправлення
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    get:
+      tags: [shipments]
+      operationId: listShipments
+      summary: Дашборд «мені / від мене / архів»
+      parameters:
+        - name: direction
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/ShipmentDirection'
+        - name: status
+          in: query
+          description: Фільтр за станом; можна повторювати
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ShipmentStatus'
+          style: form
+          explode: true
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Сторінка відправлень
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentPage'
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /shipments/{id}:
+    get:
+      tags: [shipments]
+      operationId: getShipment
+      summary: Деталі відправлення
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Відправлення
+          headers:
+            ETag:
+              description: Версія ресурсу для `If-Match`
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [shipments]
+      operationId: updateShipment
+      summary: Змінити чернетку
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentPatch'
+      responses:
+        '200':
+          description: Змінене відправлення
+          headers:
+            ETag:
+              description: Версія ресурсу для `If-Match`
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '412': { $ref: '#/components/responses/PreconditionFailed' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /shipments/{id}/confirm:
+    post:
+      tags: [shipments]
+      operationId: confirmShipment
+      summary: Підтвердити чернетку (T1, DRAFT → CREATED)
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Підтверджено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /shipments/{id}/cancel:
+    post:
+      tags: [shipments]
+      operationId: cancelShipment
+      summary: Скасувати до прийому (T2)
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelShipmentRequest'
+      responses:
+        '200':
+          description: Скасовано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /shipments/{id}/qr:
+    get:
+      tags: [shipments]
+      operationId: getShipmentQr
+      summary: QR для відправки без етикетки
+      description: Підписаний токен `kite://ship/{shipmentId}?t=<JWS, 7 днів>` у вигляді SVG.
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: QR-код
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /shipments/{id}/timeline:
+    get:
+      tags: [shipments]
+      operationId: getShipmentTimeline
+      summary: Таймлайн подій і прогноз
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Таймлайн
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /shipments/{id}/actions:
+    get:
+      tags: [shipments]
+      operationId: listShipmentActions
+      summary: Доступні дії з цінами для поточного стану
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Доступні дії
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailableAction'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /shipments/{id}/actions/{action}:
+    post:
+      tags: [shipments]
+      operationId: requestShipmentAction
+      summary: Керування доставкою
+      description: |
+        Переадресація (T9, T10), відпустка (T11), зміна отримувача, продовження
+        зберігання і відмова (T14). Платні дії повертають `payment` із
+        `redirectUrl`, поки вона не оплачена.
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+        - name: action
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/DeliveryActionType'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryActionRequest'
+      responses:
+        '201':
+          description: Дію прийнято
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryAction'
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /payments:
+    post:
+      tags: [payments]
+      operationId: createPayment
+      summary: Створити платіж
+      description: Повертає `redirectUrl` на сторінку mock-pay.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '201':
+          description: Платіж створено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /payments/{id}:
+    get:
+      tags: [payments]
+      operationId: getPayment
+      summary: Стан платежу
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Платіж
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /promo-codes/validate:
+    post:
+      tags: [payments]
+      operationId: validatePromoCode
+      summary: Перевірити промокод
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromoCodeValidateRequest'
+      responses:
+        '200':
+          description: Результат перевірки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromoCodeValidation'
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /lockers/{locationId}/open:
+    post:
+      tags: [lockers]
+      operationId: openLockerCell
+      summary: Відкрити комірку (отримання або відправка)
+      parameters:
+        - name: locationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenCellRequest'
+      responses:
+        '200':
+          description: Комірку відкрито
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenCellResult'
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /storage-bookings:
+    post:
+      tags: [lockers]
+      operationId: createStorageBooking
+      summary: Забронювати камеру зберігання в Kite Box
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageBookingRequest'
+      responses:
+        '201':
+          description: Заброньовано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageBooking'
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    get:
+      tags: [lockers]
+      operationId: listStorageBookings
+      summary: Мої бронювання
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Сторінка бронювань
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageBookingPage'
+
+  /claims:
+    post:
+      tags: [care]
+      operationId: createClaim
+      summary: Створити претензію
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClaimRequest'
+      responses:
+        '201':
+          description: Претензію створено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Claim'
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+    get:
+      tags: [care]
+      operationId: listClaims
+      summary: Мої претензії
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Сторінка претензій
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimPage'
+
+  /claims/{id}/attachments:
+    post:
+      tags: [care]
+      operationId: createClaimAttachment
+      summary: Отримати посилання для завантаження фото
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachmentRequest'
+      responses:
+        '201':
+          description: Посилання на завантаження в MinIO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadTicket'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /tickets:
+    get:
+      tags: [care]
+      operationId: listTickets
+      summary: Мої тікети
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Сторінка тікетів
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketPage'
+    post:
+      tags: [care]
+      operationId: createTicket
+      summary: Створити тікет підтримки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketRequest'
+      responses:
+        '201':
+          description: Тікет створено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /tickets/{id}/messages:
+    post:
+      tags: [care]
+      operationId: addTicketMessage
+      summary: Дописати повідомлення в тікет
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketMessageRequest'
+      responses:
+        '201':
+          description: Повідомлення додано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketMessage'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /scans:
+    post:
+      tags: [scans]
+      operationId: submitScans
+      summary: Пакет сканів (до 100)
+      description: |
+        Приймає scan-service. Ідемпотентність — за `scanId`, згенерованим на
+        телефоні; повтор того самого `scanId` повертає попередній результат.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanBatch'
+      responses:
+        '200':
+          description: Результат по кожному скану
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanBatchResult'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /ops/hubs/{hubId}/sort-hint/{barcode}:
+    get:
+      tags: [scans]
+      operationId: getSortHint
+      summary: Сортувальна підказка
+      parameters:
+        - name: hubId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: barcode
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Barcode'
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Підказка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SortHint'
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Токен Keycloak для клієнтів і персоналу
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Ключ організації для бізнес-інтеграцій
+
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TrackingNumberPath:
+      name: trackingNumber
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/TrackingNumber'
+    Limit:
+      name: limit
+      in: query
+      description: Розмір сторінки
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      name: cursor
+      in: query
+      description: Курсор із `nextCursor` попередньої сторінки
+      schema:
+        type: string
+        maxLength: 512
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: |
+        Обов'язковий для створення відправлень, платежів і дій з оплатою (9.1).
+        Повтор із тим самим ключем повертає ту саму відповідь 24 години.
+      schema:
+        type: string
+        format: uuid
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: ETag версії, яку змінюємо
+      schema:
+        type: string
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      description: Мова людських описів статусів
+      schema:
+        type: string
+        enum: [uk, en]
+        default: uk
+
+  responses:
+    BadRequest:
+      description: Неправильний запит
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: Немає або недійсний токен
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Немає прав
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Не знайдено
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: Конфлікт стану або ключа ідемпотентності
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    PreconditionFailed:
+      description: ETag не збігся
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UnprocessableEntity:
+      description: Не пройшла валідація або недозволений перехід
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    TooManyRequests:
+      description: Перевищено ліміт частоти
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    Problem:
+      type: object
+      description: Помилка у форматі RFC 9457 (9.1)
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          example: https://kite.ua/problems/invalid-transition
+        title:
+          type: string
+          example: Недозволений перехід стану
+        status:
+          type: integer
+          format: int32
+          example: 422
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          type: string
+          description: Машинний код помилки Kite
+          example: SHIPMENT_INVALID_TRANSITION
+        requestId:
+          type: string
+          description: Значення `X-Request-Id`
+        errors:
+          type: array
+          description: Помилки полів
+          items:
+            $ref: '#/components/schemas/FieldError'
+    FieldError:
+      type: object
+      required: [field, code]
+      properties:
+        field:
+          type: string
+          example: recipient.phone
+        code:
+          type: string
+          example: INVALID_FORMAT
+        message:
+          type: string
+
+    Money:
+      type: object
+      description: Гроші в копійках; валюта завжди UAH (6.1)
+      required: [amountMinor, currency]
+      properties:
+        amountMinor:
+          type: integer
+          format: int64
+          example: 12000
+        currency:
+          type: string
+          enum: [UAH]
+          default: UAH
+    TrackingNumber:
+      type: string
+      description: Номер відправлення у форматі UPU S10 (10.1)
+      pattern: '^KT\d{9}UA$'
+      example: KT123456785UA
+    Barcode:
+      type: string
+      description: Штрих-код місця — номер із суфіксом місця (10.1)
+      pattern: '^KT\d{9}UA-\d{2}$'
+      example: KT123456785UA-01
+    Phone:
+      type: string
+      description: Телефон у E.164
+      pattern: '^\+380\d{9}$'
+      example: '+380501234567'
+    Locale:
+      type: string
+      enum: [uk, en]
+    Theme:
+      type: string
+      enum: [LIGHT, DARK, SYSTEM]
+
+    ShipmentStatus:
+      type: string
+      description: Стани з 7.1
+      enum:
+        - DRAFT
+        - CREATED
+        - CANCELLED
+        - ACCEPTED
+        - IN_TRANSIT
+        - AT_HUB
+        - SORTED
+        - ON_HOLD
+        - READY_FOR_PICKUP
+        - DELIVERED
+        - RETURNED
+        - LOST
+    ShipmentType:
+      type: string
+      enum: [DOCUMENTS, PARCEL, CARGO]
+    ShipmentDirection:
+      type: string
+      enum: [incoming, outgoing, archive]
+    PayerType:
+      type: string
+      enum: [SENDER, RECIPIENT, BUSINESS]
+    DeliveryZone:
+      type: string
+      enum: [CITY, REGION, COUNTRY]
+    ServiceCode:
+      type: string
+      description: Додаткові послуги (бізнес-модель, «Джерела доходу»)
+      enum: [COD, DECLARED_VALUE, PACKAGING, PAID_STORAGE, REDIRECT_AFTER_ARRIVAL]
+    LocationType:
+      type: string
+      description: Типи точок мережі (6.2, `location`)
+      enum: [BRANCH, FREIGHT_BRANCH, KITE_BOX, REGIONAL_HUB, TRUNK_HUB]
+    LocationService:
+      type: string
+      enum: [SEND, RECEIVE, COD, CARGO, PACKAGING, STORAGE]
+    CellSize:
+      type: string
+      enum: [S, M, L]
+    EventCode:
+      type: string
+      description: Код події з каталогу 8.2
+      pattern: '^KT\d{2}$'
+      example: KT30
+
+    GeoPoint:
+      type: object
+      required: [lat, lon]
+      properties:
+        lat:
+          type: number
+          format: double
+          example: 50.4501
+        lon:
+          type: number
+          format: double
+          example: 30.5234
+    Address:
+      type: object
+      required: [city, street]
+      properties:
+        city:
+          type: string
+        cityId:
+          type: string
+          format: uuid
+        street:
+          type: string
+        building:
+          type: string
+        apartment:
+          type: string
+        postalCode:
+          type: string
+          pattern: '^\d{5}$'
+    Dimensions:
+      type: object
+      description: Габарити в міліметрах (6.1)
+      required: [lengthMm, widthMm, heightMm]
+      properties:
+        lengthMm:
+          type: integer
+          format: int32
+          minimum: 1
+        widthMm:
+          type: integer
+          format: int32
+          minimum: 1
+        heightMm:
+          type: integer
+          format: int32
+          minimum: 1
+
+    OpeningHours:
+      type: object
+      required: [dayOfWeek, opensAt, closesAt]
+      properties:
+        dayOfWeek:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 7
+        opensAt:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+          example: '09:00'
+        closesAt:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+          example: '20:00'
+    LocationRef:
+      type: object
+      description: Короткий опис точки для вкладених об'єктів
+      required: [id, type, code]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/LocationType'
+        code:
+          type: string
+          example: KV-041
+        name:
+          type: string
+          example: Відділення №41, Київ
+        city:
+          type: string
+    Location:
+      allOf:
+        - $ref: '#/components/schemas/LocationRef'
+        - type: object
+          required: [address, geo]
+          properties:
+            address:
+              $ref: '#/components/schemas/Address'
+            geo:
+              $ref: '#/components/schemas/GeoPoint'
+            maxWeightGrams:
+              type: integer
+              format: int64
+              example: 30000
+            services:
+              type: array
+              items:
+                $ref: '#/components/schemas/LocationService'
+            openingHours:
+              type: array
+              items:
+                $ref: '#/components/schemas/OpeningHours'
+            openNow:
+              type: boolean
+            freeCellSizes:
+              type: array
+              description: Вільні комірки Kite Box за розміром
+              items:
+                $ref: '#/components/schemas/CellSize'
+    LocationPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+        nextCursor:
+          type: string
+          nullable: true
+
+    OtpRequest:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          $ref: '#/components/schemas/Phone'
+    OtpChallenge:
+      type: object
+      required: [challengeId, expiresAt]
+      properties:
+        challengeId:
+          type: string
+          format: uuid
+        expiresAt:
+          type: string
+          format: date-time
+        resendAfterSeconds:
+          type: integer
+          format: int32
+          example: 60
+    OtpVerifyRequest:
+      type: object
+      required: [challengeId, code]
+      properties:
+        challengeId:
+          type: string
+          format: uuid
+        code:
+          type: string
+          pattern: '^\d{6}$'
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+    TokenPair:
+      type: object
+      required: [accessToken, refreshToken, expiresIn, tokenType]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+          enum: [Bearer]
+        expiresIn:
+          type: integer
+          format: int32
+          description: Час життя токена доступу в секундах
+          example: 900
+
+    Customer:
+      type: object
+      required: [id, firstName, lastName, locale]
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        email:
+          type: string
+          format: email
+        locale:
+          $ref: '#/components/schemas/Locale'
+        theme:
+          $ref: '#/components/schemas/Theme'
+        quietHoursFrom:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+          nullable: true
+        quietHoursTo:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+          nullable: true
+        phones:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerPhone'
+    CustomerPatch:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        email:
+          type: string
+          format: email
+        locale:
+          $ref: '#/components/schemas/Locale'
+        theme:
+          $ref: '#/components/schemas/Theme'
+        quietHoursFrom:
+          type: string
+          nullable: true
+        quietHoursTo:
+          type: string
+          nullable: true
+    CustomerPhone:
+      type: object
+      required: [id, phone, primary]
+      properties:
+        id:
+          type: string
+          format: uuid
+        phone:
+          $ref: '#/components/schemas/Phone'
+        primary:
+          type: boolean
+        verifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+    PhoneRequest:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          $ref: '#/components/schemas/Phone'
+    PhoneVerifyRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          pattern: '^\d{6}$'
+    TrustedPerson:
+      type: object
+      required: [id, firstName, lastName, phone]
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        phone:
+          $ref: '#/components/schemas/Phone'
+    TrustedPersonRequest:
+      type: object
+      required: [firstName, lastName, phone]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        phone:
+          $ref: '#/components/schemas/Phone'
+    FavoriteLocation:
+      type: object
+      required: [id, location]
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          example: Біля дому
+        location:
+          $ref: '#/components/schemas/LocationRef'
+    FavoriteLocationRequest:
+      type: object
+      required: [locationId]
+      properties:
+        locationId:
+          type: string
+          format: uuid
+        label:
+          type: string
+    FavoriteLocationPatch:
+      type: object
+      properties:
+        label:
+          type: string
+    NotificationChannel:
+      type: string
+      enum: [PUSH, EMAIL, SMS]
+    NotificationEventType:
+      type: string
+      enum:
+        - SHIPMENT_CREATED
+        - SHIPMENT_ACCEPTED
+        - SHIPMENT_IN_TRANSIT
+        - READY_FOR_PICKUP
+        - STORAGE_EXPIRING
+        - DELIVERED
+        - PAYMENT
+        - CLAIM
+        - MARKETING
+    NotificationPreferences:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [eventType, channels]
+            properties:
+              eventType:
+                $ref: '#/components/schemas/NotificationEventType'
+              channels:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationChannel'
+    PushSubscriptionRequest:
+      type: object
+      required: [kind, token]
+      properties:
+        kind:
+          type: string
+          enum: [WEB_PUSH, FCM]
+        token:
+          type: string
+          description: Endpoint VAPID або токен FCM
+        keys:
+          type: object
+          additionalProperties:
+            type: string
+        deviceName:
+          type: string
+    PushSubscription:
+      type: object
+      required: [id, kind, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [WEB_PUSH, FCM]
+        deviceName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Party:
+      type: object
+      description: Відправник або отримувач
+      required: [firstName, lastName, phone]
+      properties:
+        customerId:
+          type: string
+          format: uuid
+          nullable: true
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        phone:
+          $ref: '#/components/schemas/Phone'
+        email:
+          type: string
+          format: email
+    Parcel:
+      type: object
+      required: [id, seq, barcode, declaredWeightGrams]
+      properties:
+        id:
+          type: string
+          format: uuid
+        seq:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 20
+        barcode:
+          $ref: '#/components/schemas/Barcode'
+        declaredWeightGrams:
+          type: integer
+          format: int64
+          minimum: 1
+        declaredDimensions:
+          $ref: '#/components/schemas/Dimensions'
+        actualWeightGrams:
+          type: integer
+          format: int64
+          nullable: true
+        actualDimensions:
+          $ref: '#/components/schemas/Dimensions'
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+    ParcelRequest:
+      type: object
+      required: [declaredWeightGrams, declaredDimensions]
+      properties:
+        declaredWeightGrams:
+          type: integer
+          format: int64
+          minimum: 1
+        declaredDimensions:
+          $ref: '#/components/schemas/Dimensions'
+    ShipmentServiceItem:
+      type: object
+      required: [code]
+      properties:
+        code:
+          $ref: '#/components/schemas/ServiceCode'
+        params:
+          type: object
+          additionalProperties: true
+        price:
+          $ref: '#/components/schemas/Money'
+    RouteStop:
+      type: object
+      required: [seq, location, kind]
+      properties:
+        seq:
+          type: integer
+          format: int32
+        location:
+          $ref: '#/components/schemas/LocationRef'
+        kind:
+          type: string
+          enum: [ORIGIN, HUB, DESTINATION]
+        plannedAt:
+          type: string
+          format: date-time
+          nullable: true
+    EtaPrediction:
+      type: object
+      description: Прогноз ai-service
+      required: [from, to]
+      properties:
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        confidence:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        modelVersion:
+          type: string
+
+    Shipment:
+      type: object
+      required: [id, trackingNumber, type, status, sender, recipient, origin, destination, payer, parcels, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trackingNumber:
+          $ref: '#/components/schemas/TrackingNumber'
+        type:
+          $ref: '#/components/schemas/ShipmentType'
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        statusText:
+          type: string
+          description: Формулювання для клієнта (7.1), мовою з `Accept-Language`
+          example: Можна забирати
+        partiallyDelivered:
+          type: boolean
+          description: Частина місць уже видана (7, вступ)
+        sender:
+          $ref: '#/components/schemas/Party'
+        recipient:
+          $ref: '#/components/schemas/Party'
+        origin:
+          $ref: '#/components/schemas/LocationRef'
+        destination:
+          $ref: '#/components/schemas/LocationRef'
+        payer:
+          $ref: '#/components/schemas/PayerType'
+        declaredValue:
+          $ref: '#/components/schemas/Money'
+        codAmount:
+          $ref: '#/components/schemas/Money'
+        priceTotal:
+          $ref: '#/components/schemas/Money'
+        paid:
+          type: boolean
+        parcels:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/Parcel'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShipmentServiceItem'
+        route:
+          type: array
+          items:
+            $ref: '#/components/schemas/RouteStop'
+        eta:
+          $ref: '#/components/schemas/EtaPrediction'
+        returnOf:
+          type: string
+          format: uuid
+          nullable: true
+          description: Якщо це повернення — ідентифікатор оригіналу
+        storageFreeUntil:
+          type: string
+          format: date-time
+          nullable: true
+        holdUntil:
+          type: string
+          format: date-time
+          nullable: true
+        version:
+          type: integer
+          format: int64
+          description: Оптимістичне блокування (6.1)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateShipmentRequest:
+      type: object
+      required: [type, recipient, originLocationId, destinationLocationId, payer, parcels]
+      properties:
+        draft:
+          type: boolean
+          default: false
+          description: true — лишити в DRAFT; false — одразу підтвердити (T1)
+        type:
+          $ref: '#/components/schemas/ShipmentType'
+        sender:
+          $ref: '#/components/schemas/Party'
+        recipient:
+          $ref: '#/components/schemas/Party'
+        originLocationId:
+          type: string
+          format: uuid
+        destinationLocationId:
+          type: string
+          format: uuid
+        payer:
+          $ref: '#/components/schemas/PayerType'
+        declaredValue:
+          $ref: '#/components/schemas/Money'
+        codAmount:
+          $ref: '#/components/schemas/Money'
+        parcels:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/ParcelRequest'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShipmentServiceItem'
+        promoCode:
+          type: string
+        comment:
+          type: string
+          maxLength: 500
+    ShipmentPatch:
+      type: object
+      description: Зміна чернетки; поля, яких немає, лишаються як були
+      properties:
+        type:
+          $ref: '#/components/schemas/ShipmentType'
+        recipient:
+          $ref: '#/components/schemas/Party'
+        originLocationId:
+          type: string
+          format: uuid
+        destinationLocationId:
+          type: string
+          format: uuid
+        payer:
+          $ref: '#/components/schemas/PayerType'
+        declaredValue:
+          $ref: '#/components/schemas/Money'
+        codAmount:
+          $ref: '#/components/schemas/Money'
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParcelRequest'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShipmentServiceItem'
+        comment:
+          type: string
+    ShipmentSummary:
+      type: object
+      description: Рядок дашборда
+      required: [id, trackingNumber, status, direction]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trackingNumber:
+          $ref: '#/components/schemas/TrackingNumber'
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        statusText:
+          type: string
+        direction:
+          $ref: '#/components/schemas/ShipmentDirection'
+        counterpartName:
+          type: string
+          description: Другий бік відправлення
+        destination:
+          $ref: '#/components/schemas/LocationRef'
+        eta:
+          $ref: '#/components/schemas/EtaPrediction'
+        priceTotal:
+          $ref: '#/components/schemas/Money'
+        codAmount:
+          $ref: '#/components/schemas/Money'
+        updatedAt:
+          type: string
+          format: date-time
+    ShipmentPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShipmentSummary'
+        nextCursor:
+          type: string
+          nullable: true
+    CancelShipmentRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+
+    TimelineEvent:
+      type: object
+      required: [eventId, code, occurredAt]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        code:
+          $ref: '#/components/schemas/EventCode'
+        title:
+          type: string
+          example: Прибуло у відділення призначення
+        statusAfter:
+          $ref: '#/components/schemas/ShipmentStatus'
+        location:
+          $ref: '#/components/schemas/LocationRef'
+        occurredAt:
+          type: string
+          format: date-time
+        emsevt:
+          type: string
+          description: Код UPU EMSEVT, якщо подія є в базовому наборі (8.2)
+          nullable: true
+    Timeline:
+      type: object
+      required: [shipmentId, status, events]
+      properties:
+        shipmentId:
+          type: string
+          format: uuid
+        trackingNumber:
+          $ref: '#/components/schemas/TrackingNumber'
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        statusText:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineEvent'
+        eta:
+          $ref: '#/components/schemas/EtaPrediction'
+    PublicTracking:
+      type: object
+      description: Публічний статус без персональних даних
+      required: [trackingNumber, status, events]
+      properties:
+        trackingNumber:
+          $ref: '#/components/schemas/TrackingNumber'
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        statusText:
+          type: string
+        originCity:
+          type: string
+        destinationCity:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineEvent'
+        eta:
+          $ref: '#/components/schemas/EtaPrediction'
+
+    DeliveryActionType:
+      type: string
+      description: Дії керування доставкою (7.4)
+      enum: [redirect, hold, change-recipient, extend-storage, refuse]
+    DeliveryActionStatus:
+      type: string
+      enum: [REQUESTED, AWAITING_PAYMENT, APPLIED, REJECTED]
+    AvailableAction:
+      type: object
+      required: [action, available]
+      properties:
+        action:
+          $ref: '#/components/schemas/DeliveryActionType'
+        available:
+          type: boolean
+        price:
+          $ref: '#/components/schemas/Money'
+        reason:
+          type: string
+          description: Чому недоступна
+    DeliveryActionRequest:
+      type: object
+      properties:
+        destinationLocationId:
+          type: string
+          format: uuid
+          description: Для redirect
+        holdUntil:
+          type: string
+          format: date
+          description: Для hold і extend-storage (до 14 днів, 7.2 T11)
+        recipient:
+          $ref: '#/components/schemas/Party'
+        trustedPersonId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          maxLength: 500
+    DeliveryAction:
+      type: object
+      required: [id, shipmentId, action, status, requestedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        shipmentId:
+          type: string
+          format: uuid
+        action:
+          $ref: '#/components/schemas/DeliveryActionType'
+        status:
+          $ref: '#/components/schemas/DeliveryActionStatus'
+        price:
+          $ref: '#/components/schemas/Money'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        requestedAt:
+          type: string
+          format: date-time
+
+    PaymentSubject:
+      type: string
+      enum: [SHIPMENT, DELIVERY_ACTION, STORAGE_BOOKING, PAID_STORAGE, COD]
+    PaymentMethod:
+      type: string
+      enum: [CARD, BONUS, CASH, INVOICE]
+    PaymentStatus:
+      type: string
+      enum: [PENDING, AWAITING_3DS, SUCCEEDED, FAILED, REFUNDED]
+    CreatePaymentRequest:
+      type: object
+      required: [subject, subjectId, method]
+      properties:
+        subject:
+          $ref: '#/components/schemas/PaymentSubject'
+        subjectId:
+          type: string
+          format: uuid
+        method:
+          $ref: '#/components/schemas/PaymentMethod'
+        bonusAmountMinor:
+          type: integer
+          format: int64
+          description: Скільки списати балами (до 50% суми)
+        promoCode:
+          type: string
+        returnUrl:
+          type: string
+          format: uri
+    Payment:
+      type: object
+      required: [id, subject, subjectId, amount, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        subject:
+          $ref: '#/components/schemas/PaymentSubject'
+        subjectId:
+          type: string
+          format: uuid
+        amount:
+          $ref: '#/components/schemas/Money'
+        bonusApplied:
+          $ref: '#/components/schemas/Money'
+        method:
+          $ref: '#/components/schemas/PaymentMethod'
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        redirectUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Сторінка mock-pay, поки платіж не завершено
+        providerReference:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    PromoCodeValidateRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+    PromoCodeValidation:
+      type: object
+      required: [code, valid]
+      properties:
+        code:
+          type: string
+        valid:
+          type: boolean
+        discount:
+          $ref: '#/components/schemas/Money'
+        reason:
+          type: string
+    BonusTransaction:
+      type: object
+      required: [id, amountMinor, kind, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        amountMinor:
+          type: integer
+          format: int64
+          description: Додатне — нарахування, відʼємне — списання
+        kind:
+          type: string
+          enum: [EARNED, SPENT, EXPIRED]
+        shipmentId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    BonusAccount:
+      type: object
+      required: [balance]
+      properties:
+        balance:
+          $ref: '#/components/schemas/Money'
+        expiringSoon:
+          $ref: '#/components/schemas/Money'
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/BonusTransaction'
+        nextCursor:
+          type: string
+          nullable: true
+
+    QuoteRequest:
+      type: object
+      required: [type, originLocationId, destinationLocationId, parcels]
+      properties:
+        type:
+          $ref: '#/components/schemas/ShipmentType'
+        originLocationId:
+          type: string
+          format: uuid
+        destinationLocationId:
+          type: string
+          format: uuid
+        parcels:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ParcelRequest'
+        declaredValue:
+          $ref: '#/components/schemas/Money'
+        codAmount:
+          $ref: '#/components/schemas/Money'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceCode'
+        promoCode:
+          type: string
+    QuoteLine:
+      type: object
+      required: [code, title, amount]
+      properties:
+        code:
+          type: string
+          example: DELIVERY
+        title:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+    Quote:
+      type: object
+      required: [total, lines, zone, chargeableWeightGrams, expiresAt]
+      properties:
+        total:
+          $ref: '#/components/schemas/Money'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteLine'
+        zone:
+          $ref: '#/components/schemas/DeliveryZone'
+        chargeableWeightGrams:
+          type: integer
+          format: int64
+          description: Більша з фактичної та об'ємної ваги (бізнес-модель)
+        expiresAt:
+          type: string
+          format: date-time
+          description: Розрахунок кешується на 15 хв (6.2, `quote`)
+
+    OpenCellRequest:
+      type: object
+      required: [purpose]
+      properties:
+        purpose:
+          type: string
+          enum: [PICKUP, DROPOFF, STORAGE]
+        shipmentId:
+          type: string
+          format: uuid
+        bookingId:
+          type: string
+          format: uuid
+        pickupCode:
+          type: string
+          pattern: '^\d{6}$'
+    OpenCellResult:
+      type: object
+      required: [cellCode, opensAt, expiresAt]
+      properties:
+        cellCode:
+          type: string
+          example: KV-BOX-07-A01
+        size:
+          $ref: '#/components/schemas/CellSize'
+        opensAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    StorageBookingRequest:
+      type: object
+      required: [locationId, size, days]
+      properties:
+        locationId:
+          type: string
+          format: uuid
+        size:
+          $ref: '#/components/schemas/CellSize'
+        days:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 14
+    StorageBooking:
+      type: object
+      required: [id, locationId, size, status, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        locationId:
+          type: string
+          format: uuid
+        cellCode:
+          type: string
+        size:
+          $ref: '#/components/schemas/CellSize'
+        status:
+          type: string
+          enum: [AWAITING_PAYMENT, ACTIVE, EXPIRED, CLOSED]
+        price:
+          $ref: '#/components/schemas/Money'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        expiresAt:
+          type: string
+          format: date-time
+    StorageBookingPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StorageBooking'
+        nextCursor:
+          type: string
+          nullable: true
+
+    ClaimType:
+      type: string
+      enum: [DELAY, DAMAGE, LOSS, SHORTAGE, WRONG_DELIVERY]
+    ClaimStatus:
+      type: string
+      enum: [NEW, IN_REVIEW, APPROVED, REJECTED, COMPENSATED]
+    CreateClaimRequest:
+      type: object
+      required: [shipmentId, type, description]
+      properties:
+        shipmentId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/ClaimType'
+        description:
+          type: string
+          maxLength: 2000
+        claimedAmount:
+          $ref: '#/components/schemas/Money'
+    Claim:
+      type: object
+      required: [id, shipmentId, type, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        shipmentId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/ClaimType'
+        status:
+          $ref: '#/components/schemas/ClaimStatus'
+        description:
+          type: string
+        claimedAmount:
+          $ref: '#/components/schemas/Money'
+        approvedAmount:
+          $ref: '#/components/schemas/Money'
+        attachments:
+          type: array
+          items:
+            type: object
+            required: [id, url]
+            properties:
+              id:
+                type: string
+                format: uuid
+              url:
+                type: string
+                format: uri
+        createdAt:
+          type: string
+          format: date-time
+    ClaimPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Claim'
+        nextCursor:
+          type: string
+          nullable: true
+    AttachmentRequest:
+      type: object
+      required: [fileName, contentType, sizeBytes]
+      properties:
+        fileName:
+          type: string
+        contentType:
+          type: string
+          enum: [image/jpeg, image/png, image/heic, application/pdf]
+        sizeBytes:
+          type: integer
+          format: int64
+          maximum: 10485760
+    UploadTicket:
+      type: object
+      required: [attachmentId, uploadUrl, expiresAt]
+      properties:
+        attachmentId:
+          type: string
+          format: uuid
+        uploadUrl:
+          type: string
+          format: uri
+          description: Підписане посилання PUT у MinIO
+        expiresAt:
+          type: string
+          format: date-time
+    TicketStatus:
+      type: string
+      enum: [OPEN, WAITING_CUSTOMER, WAITING_AGENT, CLOSED]
+    CreateTicketRequest:
+      type: object
+      required: [subject, message]
+      properties:
+        subject:
+          type: string
+          maxLength: 200
+        message:
+          type: string
+          maxLength: 4000
+        shipmentId:
+          type: string
+          format: uuid
+          nullable: true
+    TicketMessageRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          maxLength: 4000
+    TicketMessage:
+      type: object
+      required: [id, author, message, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        author:
+          type: string
+          enum: [CUSTOMER, AGENT, SYSTEM]
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Ticket:
+      type: object
+      required: [id, subject, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+        status:
+          $ref: '#/components/schemas/TicketStatus'
+        shipmentId:
+          type: string
+          format: uuid
+          nullable: true
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketMessage'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TicketPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ticket'
+        nextCursor:
+          type: string
+          nullable: true
+
+    ExternalTrackingRequest:
+      type: object
+      required: [carrier, trackingNumber]
+      properties:
+        carrier:
+          type: string
+          maxLength: 50
+        trackingNumber:
+          type: string
+          maxLength: 50
+        label:
+          type: string
+    ExternalTracking:
+      type: object
+      required: [id, carrier, trackingNumber]
+      properties:
+        id:
+          type: string
+          format: uuid
+        carrier:
+          type: string
+        trackingNumber:
+          type: string
+        label:
+          type: string
+        manualStatus:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+
+    ScanOperation:
+      type: string
+      description: Режими роботи сканера (10.2, п. 4)
+      enum: [ACCEPT, UNLOAD, SORT, FILL_UNIT, LOAD, HANDOVER]
+    ScanOutcome:
+      type: string
+      enum: [OK, WARNING, ERROR]
+    ScanWarningCode:
+      type: string
+      enum: [DUPLICATE, WRONG_HUB, MISSORT, UNKNOWN_BARCODE, NOT_EXPECTED, UNIT_CLOSED]
+    ScanItem:
+      type: object
+      required: [scanId, barcode, operation, scannedAt]
+      properties:
+        scanId:
+          type: string
+          format: uuid
+          description: UUID, згенерований на телефоні — ключ ідемпотентності (10.2, п. 5)
+        barcode:
+          type: string
+          description: Штрих-код місця, мішка, рейсу або комірки
+          example: KT123456785UA-01
+        operation:
+          $ref: '#/components/schemas/ScanOperation'
+        scannedAt:
+          type: string
+          format: date-time
+          description: Час на пристрої; `occurred_at` журналу (8.3, п. 4)
+        locationId:
+          type: string
+          format: uuid
+        unitCode:
+          type: string
+          description: Мішок або контейнер, у який кладемо
+        tripId:
+          type: string
+          format: uuid
+        weightGrams:
+          type: integer
+          format: int64
+        dimensions:
+          $ref: '#/components/schemas/Dimensions'
+    ScanBatch:
+      type: object
+      required: [deviceId, items]
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+          description: Сесія пейрингу з Kite Ops
+        items:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/ScanItem'
+    ScanResult:
+      type: object
+      required: [scanId, outcome]
+      properties:
+        scanId:
+          type: string
+          format: uuid
+        outcome:
+          $ref: '#/components/schemas/ScanOutcome'
+        warningCode:
+          $ref: '#/components/schemas/ScanWarningCode'
+        message:
+          type: string
+        shipmentId:
+          type: string
+          format: uuid
+          nullable: true
+        statusAfter:
+          $ref: '#/components/schemas/ShipmentStatus'
+        sortHint:
+          $ref: '#/components/schemas/SortHint'
+    ScanBatchResult:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScanResult'
+    SortHint:
+      type: object
+      description: Підказка сортувальнику (5.5, п. 2)
+      required: [line, direction]
+      properties:
+        line:
+          type: string
+          example: Лінія 7
+        direction:
+          type: string
+          example: Львів
+        nextLocation:
+          $ref: '#/components/schemas/LocationRef'
+        unitCode:
+          type: string
+          nullable: true

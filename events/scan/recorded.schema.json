@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/scan/recorded/v1.json",
+  "title": "ScanRecordedData",
+  "description": "Скан місця. Публікує scan-service після валідації; споживають shipment, logistics, tracking, realtime (5.5, п. 2).",
+  "type": "object",
+  "required": [
+    "scanId",
+    "barcode",
+    "operation",
+    "locationId",
+    "deviceId",
+    "outcome"
+  ],
+  "properties": {
+    "scanId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Згенерований на телефоні — ключ ідемпотентності (10.2, п. 5)"
+    },
+    "barcode": {
+      "$ref": "api.schema.json#/$defs/Barcode"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "parcelId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "operation": {
+      "$ref": "api.schema.json#/$defs/ScanOperation"
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "deviceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sessionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Сесія пейрингу з Kite Ops"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "outcome": {
+      "$ref": "api.schema.json#/$defs/ScanOutcome"
+    },
+    "warningCode": {
+      "$ref": "api.schema.json#/$defs/ScanWarningCode"
+    },
+    "weightGrams": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Фактична вага з вагів на касі"
+    },
+    "dimensions": {
+      "$ref": "api.schema.json#/$defs/Dimensions"
+    },
+    "sortHint": {
+      "type": "object",
+      "description": "Підказка сортувальнику, порахована з таблиці маршрутизації",
+      "required": [
+        "line",
+        "direction"
+      ],
+      "properties": {
+        "line": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "nextLocationId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  }
+}

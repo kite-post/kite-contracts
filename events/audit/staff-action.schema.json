@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/audit/staff-action/v1.json",
+  "title": "AuditStaffActionData",
+  "description": "Дія персоналу для журналу аудиту. Публікують усі сервіси, споживає audit-service (9.7).",
+  "type": "object",
+  "required": [
+    "actorUserId",
+    "actorRole",
+    "action",
+    "entityType",
+    "entityId"
+  ],
+  "properties": {
+    "actorUserId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "actorRole": {
+      "$ref": "common.schema.json#/$defs/ActorRole"
+    },
+    "action": {
+      "type": "string",
+      "description": "Машинна назва дії",
+      "examples": [
+        "shipment.handover",
+        "tariff.update"
+      ]
+    },
+    "entityType": {
+      "type": "string",
+      "examples": [
+        "shipment",
+        "tariff",
+        "location"
+      ]
+    },
+    "entityId": {
+      "type": "string"
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "ip": {
+      "type": "string",
+      "format": "ipv4"
+    },
+    "userAgent": {
+      "type": "string"
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "DENIED",
+        "ERROR"
+      ]
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/logistics/unit-closed/v1.json",
+  "title": "LogisticsUnitClosedData",
+  "description": "Мішок закрито і відправлено на лінію. Споживають shipment, tracking, realtime (9.7).",
+  "type": "object",
+  "required": [
+    "unitCode",
+    "unitType",
+    "locationId",
+    "destinationLocationId",
+    "shipmentIds"
+  ],
+  "properties": {
+    "unitCode": {
+      "type": "string",
+      "pattern": "^(BG|CT)[0-9]{10}$"
+    },
+    "unitType": {
+      "type": "string",
+      "enum": [
+        "BAG",
+        "CONTAINER",
+        "PALLET"
+      ]
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sortLine": {
+      "type": "string",
+      "description": "Лінія сортування, з якої пішов мішок"
+    },
+    "destinationLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "parentUnitCode": {
+      "type": "string",
+      "description": "Якщо мішок вкладено в контейнер",
+      "pattern": "^(BG|CT)[0-9]{10}$"
+    },
+    "shipmentIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "closedByUserId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

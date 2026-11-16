@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/logistics/trip-departed/v1.json",
+  "title": "LogisticsTripDepartedData",
+  "description": "Рейс вирушив: місця в ньому йдуть у IN_TRANSIT (T4).",
+  "type": "object",
+  "required": [
+    "tripId",
+    "tripCode",
+    "fromLocationId",
+    "toLocationId",
+    "unitCodes"
+  ],
+  "properties": {
+    "tripId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tripCode": {
+      "type": "string",
+      "description": "Код рейсу TR-{дата}-{номер} (10.1)",
+      "pattern": "^TR-[0-9]{8}-[0-9]{3}$"
+    },
+    "fromLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "toLocationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "vehicleId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driverUserId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "plannedArrivalAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unitCodes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

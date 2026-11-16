@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/logistics/discrepancy-opened/v1.json",
+  "title": "LogisticsDiscrepancyOpenedData",
+  "description": "Розбіжність при звірці маніфесту: нестача, зайве, пошкодження, неправильне сортування (6.2, discrepancy).",
+  "type": "object",
+  "required": [
+    "discrepancyId",
+    "kind",
+    "locationId"
+  ],
+  "properties": {
+    "discrepancyId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "SHORTAGE",
+        "EXTRA",
+        "DAMAGE",
+        "MISSORT"
+      ]
+    },
+    "tripId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "unitCode": {
+      "type": "string"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "parcelId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "openedByUserId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "comment": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  }
+}

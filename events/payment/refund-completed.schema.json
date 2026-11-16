@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/payment/refund-completed/v1.json",
+  "title": "PaymentRefundCompletedData",
+  "description": "Повернення коштів завершено: скасування до прийому (T2) або компенсація за претензією.",
+  "type": "object",
+  "required": [
+    "refundId",
+    "paymentId",
+    "amount",
+    "reason"
+  ],
+  "properties": {
+    "refundId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "paymentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "amount": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "SHIPMENT_CANCELLED",
+        "CLAIM_COMPENSATION",
+        "SERVICE_NOT_RENDERED",
+        "MANUAL"
+      ]
+    },
+    "claimId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

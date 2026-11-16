@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/locker/storage-expired/v1.json",
+  "title": "LockerStorageExpiredData",
+  "description": "Вичерпано строк у поштоматі: 3 доби, +24 год один раз — далі T13 у відділення (7.3).",
+  "type": "object",
+  "required": [
+    "lockerId",
+    "cellCode"
+  ],
+  "properties": {
+    "lockerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "locationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "cellCode": {
+      "type": "string"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "bookingId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "extendedOnce": {
+      "type": "boolean",
+      "description": "Чи було продовження на 24 години"
+    },
+    "moveToLocationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Відділення, куди поїде посилка"
+    }
+  }
+}

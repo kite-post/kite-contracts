@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/shipment/confirmed/v1.json",
+  "title": "ShipmentConfirmedData",
+  "description": "Чернетку підтверджено: перехід T1 DRAFT → CREATED (KT01).",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "trackingNumber",
+    "priceTotal"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "trackingNumber": {
+      "$ref": "api.schema.json#/$defs/TrackingNumber"
+    },
+    "priceTotal": {
+      "$ref": "api.schema.json#/$defs/Money"
+    },
+    "confirmedByCustomerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

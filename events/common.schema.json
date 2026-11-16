@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/common/v1.json",
+  "title": "EventCommon",
+  "description": "Типи, які існують лише в подіях. Усе, що є і в REST-контракті, береться з api.schema.json — копій не тримаємо (5.4, п. 6).",
+  "$defs": {
+    "PhoneHash": {
+      "type": "string",
+      "description": "SHA-256 телефону в hex: події не носять самих номерів (6.2, party_shipment_index)",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "Transition": {
+      "type": "string",
+      "description": "Перехід стейт-машини з 7.2",
+      "pattern": "^T([1-9]|1[0-6])$",
+      "examples": [
+        "T7"
+      ]
+    },
+    "ActorRole": {
+      "type": "string",
+      "enum": [
+        "OPERATOR",
+        "SORTER",
+        "DRIVER",
+        "SHIFT_MANAGER",
+        "DISPATCHER",
+        "SUPPORT",
+        "ADMIN",
+        "SYSTEM"
+      ],
+      "description": "Роль персоналу, що виконала дію (9.5)"
+    }
+  }
+}

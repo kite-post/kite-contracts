@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/shipment/cancelled/v1.json",
+  "title": "ShipmentCancelledData",
+  "description": "Скасовано відправником до прийому: перехід T2 (KT03). Онлайн-оплата повертається.",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "trackingNumber",
+    "statusBefore"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "trackingNumber": {
+      "$ref": "api.schema.json#/$defs/TrackingNumber"
+    },
+    "statusBefore": {
+      "$ref": "api.schema.json#/$defs/ShipmentStatus"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "cancelledBy": {
+      "type": "string",
+      "enum": [
+        "SENDER",
+        "SYSTEM"
+      ],
+      "description": "SYSTEM — автоскасування через 30 діб (7.3)"
+    },
+    "refundPaymentId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

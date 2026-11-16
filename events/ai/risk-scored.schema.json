@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/ai/risk-scored/v1.json",
+  "title": "AiRiskScoredData",
+  "description": "Оцінка ризику неотримання з причинами (11, ризик невдалої доставки).",
+  "type": "object",
+  "required": [
+    "shipmentId",
+    "riskScore",
+    "modelVersion"
+  ],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "riskScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Людські причини оцінки: історія відмов, довгий строк зберігання тощо"
+    },
+    "modelVersion": {
+      "type": "string"
+    }
+  }
+}

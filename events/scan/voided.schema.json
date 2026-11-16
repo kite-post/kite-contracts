@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.kite.ua/events/scan/voided/v1.json",
+  "title": "ScanVoidedData",
+  "description": "Скан анульовано (KT90). Право має тільки диспетчер; стан перераховується відтворенням журналу (8.3, п. 6).",
+  "type": "object",
+  "required": [
+    "scanId",
+    "voidedEventId",
+    "voidedByUserId",
+    "reason"
+  ],
+  "properties": {
+    "scanId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Скан, який анулюємо"
+    },
+    "voidedEventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Подія журналу, яку скасовує це анулювання"
+    },
+    "shipmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "voidedByUserId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "voidedByRole": {
+      "$ref": "common.schema.json#/$defs/ActorRole"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 500
+    }
+  }
+}
