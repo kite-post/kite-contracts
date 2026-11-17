@@ -10,3 +10,10 @@ dart/.pub-cache/
 # Локальне
 .DS_Store
 *.log
+
+# Python
+__pycache__/
+*.pyc
+python/build/
+.mypy_cache/
+.pytest_cache/

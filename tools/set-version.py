@@ -54,7 +54,34 @@ def main() -> int:
         return 1
     spec.write_text(text, encoding="utf-8")
 
-    print(f"версія {version}: VERSION, java/pom.xml, конфіг Dart, openapi.yaml")
+    pkg = ROOT / "ts" / "package.json"
+    text = pkg.read_text(encoding="utf-8")
+    text, n = re.subn(r'(?m)^(  "version": )"[^"]+"', rf'\g<1>"{version}"', text, count=1)
+    if n != 1:
+        print("не знайшов version у ts/package.json", file=sys.stderr)
+        return 1
+    pkg.write_text(text, encoding="utf-8")
+
+    lock = ROOT / "ts" / "package-lock.json"
+    text = lock.read_text(encoding="utf-8")
+    # Версія кореневого пакета стоїть у lock-файлі двічі: зверху і в packages[""].
+    text, n = re.subn(
+        r'(?s)("name": "@kite/contracts",\s*"version": )"[^"]+"', rf'\g<1>"{version}"', text
+    )
+    if n != 2:
+        print("не знайшов версію @kite/contracts у ts/package-lock.json", file=sys.stderr)
+        return 1
+    lock.write_text(text, encoding="utf-8")
+
+    pyproject = ROOT / "python" / "pyproject.toml"
+    text = pyproject.read_text(encoding="utf-8")
+    text, n = re.subn(r'(?m)^(version = )"[^"]+"', rf'\g<1>"{version}"', text, count=1)
+    if n != 1:
+        print("не знайшов version у python/pyproject.toml", file=sys.stderr)
+        return 1
+    pyproject.write_text(text, encoding="utf-8")
+
+    print(f"версія {version}: VERSION, pom.xml, Dart, openapi.yaml, package.json, pyproject.toml")
     return 0
 
 

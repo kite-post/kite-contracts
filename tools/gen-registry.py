@@ -125,7 +125,132 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(dart), encoding="utf-8")
 
-    print(f"реєстр як код: {len(events)} подій, {len(topics)} топіків → kite/registry.gen.go, dart/lib/kite_registry.dart")
+    # ── TypeScript ───────────────────────────────────────────────────────────
+    ts = [
+        "// Згенеровано з events/registry.json командою tools/gen-registry.py — не правити.",
+        "",
+        'import type { KiteEventType, KiteTopic } from "./schema.gen.js";',
+        "",
+        "/** Що відомо про тип події з реєстру контрактів (9.7, 8.3 п. 4). */",
+        "export interface KiteEventMeta {",
+        "  readonly type: KiteEventType;",
+        "  readonly topic: KiteTopic;",
+        "  readonly producer: string;",
+        "  readonly consumers: readonly string[];",
+        "  readonly partitionKey: string;",
+        "  readonly schemaId: string;",
+        "  readonly eventCodes: readonly string[];",
+        "}",
+        "",
+        "/** Топіки Kafka (9.7). */",
+        "export const kiteTopics: readonly KiteTopic[] = [",
+    ]
+    ts += [f'  "{t}",' for t in topics]
+    ts += [
+        "];",
+        "",
+        "/** Усі типи доменних подій Kite. */",
+        "export const kiteEventTypes: readonly KiteEventType[] = [",
+    ]
+    ts += [f'  "{e["type"]}",' for e in events]
+    ts += [
+        "];",
+        "",
+        "/** Усі доменні події Kite за типом. */",
+        "export const kiteEventRegistry: Readonly<Record<KiteEventType, KiteEventMeta>> = {",
+    ]
+    for e in events:
+        consumers = ", ".join(f'"{c}"' for c in e["consumers"])
+        codes = ", ".join(f'"{c}"' for c in e.get("eventCodes", []))
+        ts += [
+            f'  "{e["type"]}": {{',
+            f'    type: "{e["type"]}",',
+            f'    topic: "{e["topic"]}",',
+            f'    producer: "{e["producer"]}",',
+            f"    consumers: [{consumers}],",
+            f'    partitionKey: "{e["partitionKey"]}",',
+            f'    schemaId: "{e["schemaId"]}",',
+            f"    eventCodes: [{codes}],",
+            "  },",
+        ]
+    ts += ["};", ""]
+    out = ROOT / "ts" / "src" / "registry.gen.ts"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(ts), encoding="utf-8")
+
+    # ── Python ───────────────────────────────────────────────────────────────
+    py = [
+        '"""Реєстр подій Kite: тип → топік, продюсер, споживачі, ключ розділу.',
+        "",
+        "Згенеровано з events/registry.json командою tools/gen-registry.py — не правити.",
+        '"""',
+        "",
+        "from __future__ import annotations",
+        "",
+        "from dataclasses import dataclass",
+        "from typing import Final",
+        "",
+        "from pydantic import BaseModel",
+        "",
+        "from kite_contracts import models",
+        "",
+        "",
+        "@dataclass(frozen=True, slots=True)",
+        "class EventMeta:",
+        '    """Що відомо про тип події з реєстру контрактів (9.7, 8.3 п. 4)."""',
+        "",
+        "    type: str",
+        "    topic: str",
+        "    producer: str",
+        "    consumers: tuple[str, ...]",
+        "    partition_key: str",
+        "    schema_id: str",
+        "    event_codes: tuple[str, ...]",
+        "",
+        "",
+        "TOPICS: Final[tuple[str, ...]] = (",
+    ]
+    py += [f'    "{t}",' for t in topics]
+    py += [")", "", "EVENT_REGISTRY: Final[dict[str, EventMeta]] = {"]
+
+    def py_tuple(items: list[str]) -> str:
+        if not items:
+            return "()"
+        if len(items) == 1:
+            return f'("{items[0]}",)'
+        return "(" + ", ".join(f'"{i}"' for i in items) + ")"
+
+    for e in events:
+        py += [
+            f'    "{e["type"]}": EventMeta(',
+            f'        type="{e["type"]}",',
+            f'        topic="{e["topic"]}",',
+            f'        producer="{e["producer"]}",',
+            f"        consumers={py_tuple(e['consumers'])},",
+            f'        partition_key="{e["partitionKey"]}",',
+            f'        schema_id="{e["schemaId"]}",',
+            f"        event_codes={py_tuple(e.get('eventCodes', []))},",
+            "    ),",
+        ]
+    py += [
+        "}",
+        "",
+        "# Тип події → pydantic-модель конверта з типізованим data.",
+        "EVENT_MODELS: Final[dict[str, type[BaseModel]]] = {",
+    ]
+    for e in events:
+        model = e["dataSchemaTitle"].removesuffix("Data") + "Event"
+        py.append(f'    "{e["type"]}": models.{model},')
+    py += ["}", ""]
+    out = ROOT / "python" / "src" / "kite_contracts" / "registry.py"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(py), encoding="utf-8")
+
+    print(
+        f"реєстр як код: {len(events)} подій, {len(topics)} топіків → "
+        "kite/registry.gen.go, dart/lib/kite_registry.dart, "
+        "ts/src/registry.gen.ts, python/src/kite_contracts/registry.py"
+    )
 
 
 if __name__ == "__main__":

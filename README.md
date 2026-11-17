@@ -1,7 +1,7 @@
 # kite-contracts — контракти Kite
 
 Тут живуть REST-контракт і схеми подій Kite, і з них генеруються Java-класи,
-Go-структури й Dart-моделі. Сервіс підключає контракти **залежністю,
+Go-структури, Dart-моделі, TypeScript-типи і pydantic-моделі. Сервіс підключає контракти **залежністю,
 закріпленою за тегом**, і не тримає копій схем у себе (5.4, п. 6; 8.3, п. 8).
 
 ```
@@ -12,7 +12,9 @@ events/api.schema.json дзеркало REST-схем для подій — ге
 java/                  Maven-пакет ua.kite:kite-contracts
 kite/                  Go-пакет github.com/kite-post/kite-contracts/kite
 dart/                  Dart-пакет kite_contracts
-tools/                 бандлер, валідатор, генератор реєстру
+ts/                    npm-пакет @kite/contracts
+python/                Python-пакет kite-contracts (pydantic)
+tools/                 бандлер, валідатор, генератори, перевірка сумісності
 examples/              приклади подій, на яких тримаються тести трьох мов
 ```
 
@@ -20,7 +22,7 @@ examples/              приклади подій, на яких тримают
 
 Джерело правди — `openapi/openapi.yaml` і `events/**/*.schema.json`. Решта
 генерується: `events/api.schema.json`, `kite/*.gen.go`, `dart/lib/**`,
-Java-класи. `make check` падає, якщо згенероване розійшлося зі схемами.
+`ts/src/*.gen.ts`, `python/src/kite_contracts/{models,registry}.py`, Java-класи. `make check` падає, якщо згенероване розійшлося зі схемами.
 
 Одне ім'я — одне визначення. Схема події не описує тип, який уже є в
 REST-контракті, а посилається на нього:
@@ -29,18 +31,32 @@ REST-контракті, а посилається на нього:
 "declaredValue": { "$ref": "api.schema.json#/$defs/Money" }
 ```
 
-Тому в усіх трьох мовах `Money` — один клас і для API, і для подій.
+Тому в усіх п'яти мовах `Money` — один клас і для API, і для подій.
 
 ## Команди
 
 ```bash
-make generate   # Go, Dart і реєстр подій
+make generate   # Go, Dart, TypeScript, Python і реєстр подій
 make java       # Maven-пакет
-make verify     # те саме, що й CI: lint + check + тести трьох мов
+make ts         # npm-пакет у ts/dist
+make compat     # сумісність із попереднім тегом
+make verify     # те саме, що й CI: lint + check + compat + тести п'яти мов
 ```
 
-Генератори їдуть у Docker, тож локально не потрібні ні Go, ні Dart SDK —
-достатньо докера і Maven.
+Генератори їдуть у Docker, тож локально не потрібні ні Go, ні Dart, ні Node,
+ні Python-пакети — достатньо докера і Maven.
+
+| Мова       | Генератор                                     | Як дістається сервісу                    | Код у git |
+| ---------- | --------------------------------------------- | ---------------------------------------- | --------- |
+| Java       | openapi-generator (`spring`, `java/native`)   | Maven-пакет у GitHub Packages            | ні        |
+| TypeScript | openapi-typescript + openapi-fetch            | npm-пакет `@kite/contracts`, GitHub Packages | ні (лише `*.gen.ts`) |
+| Go         | oapi-codegen                                  | Go-модуль з git за тегом                 | так       |
+| Dart       | openapi-generator (`dart`)                    | git-залежність за тегом, шлях `dart`     | так       |
+| Python     | datamodel-code-generator (pydantic v2)        | pip з git за тегом, підкаталог `python`  | так       |
+
+Go, Dart і Python реєстру в GitHub Packages не мають, тож їхній згенерований
+код лежить у git, а тег і є релізом. `make check` падає, якщо він розійшовся
+зі схемами.
 
 ## Як підключити з сервіса
 
@@ -82,10 +98,46 @@ dependencies:
       path: dart
 ```
 
+**TypeScript** (`package.json` у Vue-застосунку), з GitHub Packages поруч з
+`@kite/ui`:
+
+```bash
+pnpm add --save-exact @kite/contracts@0.2.0
+```
+
+```ts
+import { createKiteClient, kiteEventRegistry, type PublicTracking } from '@kite/contracts'
+
+const api = createKiteClient({ baseUrl: '/api/v1' })
+const { data } = await api.GET('/public/track/{trackingNumber}', {
+  params: { path: { trackingNumber: 'KT123456785UA' } },
+})
+```
+
+**Python** (`pyproject.toml` в ai-service чи симуляторі):
+
+```toml
+dependencies = [
+    "kite-contracts @ git+https://github.com/kite-post/kite-contracts.git@v0.2.0#subdirectory=python",
+]
+```
+
+```python
+from kite_contracts import parse_event
+from kite_contracts.registry import EVENT_REGISTRY
+
+event = parse_event(raw)                  # ShipmentStatusChangedEvent тощо
+topic = EVENT_REGISTRY[event.type].topic  # "shipment.events"
+```
+
+У шаблонах сервісів усе це робить одна команда: `make contracts V=0.2.0`.
+
 ## Версії і сумісність
 
-Версія одна на всі три пакети, у файлі `VERSION`; `make version V=0.2.0`
-розставляє її по `pom.xml`, конфігу Dart і `info.version`.
+Версія одна на всі п'ять пакетів, у файлі `VERSION`; `make version V=0.2.0`
+розставляє її по `pom.xml`, конфігу Dart, `info.version`, `ts/package.json` і
+`python/pyproject.toml`. Мажорна версія не змінюється: зміни лише адитивні,
+а в Go перехід на v2 змінив би шлях імпорту.
 
 Правила зміни схем (8.3, п. 8):
 
@@ -94,6 +146,27 @@ dependencies:
   (`kite.shipment.status-changed.v2`), а старий живе, доки має споживачів;
 - схеми подій не закриваються `additionalProperties: false` — інакше новий
   продюсер зламає старого споживача; `make verify` це перевіряє.
+
+`make compat` (і CI на кожен PR) звіряє робочу копію з попереднім тегом:
+REST — `oasdiff breaking`, події — `tools/compat.py`. Помилка — зник тип чи
+поле, змінився тип, формат чи `$ref`, поле стало обов'язковим, зникло значення
+enum, змінились топік чи ключ розділу. Нове значення enum — лише
+попередження: споживач має читати незнайомі значення як «інше».
+
+## Реліз
+
+```bash
+make version V=0.3.0 && make generate
+git commit -am "kite-contracts 0.3.0" && make release
+```
+
+За тегом CI публікує Maven- і npm-пакети, а потім розсилає подію
+`kite-contracts-released` усім репозиторіям організації з топіком
+`kite-contracts`. Кожен із них workflow `contracts-bump` (спільний, з
+`.github`) відкриває собі PR з `make contracts V=0.3.0` — тулчейном самого
+сервіса, тож `go.sum` і `pnpm-lock.yaml` узгоджуються як руками. Для розсилки
+потрібен секрет організації `CONTRACTS_BUMP_TOKEN` (fine-grained PAT з
+`contents: write` і `pull-requests: write`); без нього крок пропускається.
 
 Порядок наскрізної зміни (5.6): спершу адитивна зміна тут із новим тегом,
 потім споживачі, і тільки потім продюсер починає слати нове поле.
@@ -106,3 +179,5 @@ dependencies:
   CloudEvents.
 - Kite Business (9.4) і решта Kite Ops (9.5) дописуються разом із
   відповідними сервісами.
+- З 0.2.0 — пакети для TypeScript і Python і перевірка сумісності з
+  попереднім тегом.

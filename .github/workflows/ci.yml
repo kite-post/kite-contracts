@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Повна історія з тегами: make compat порівнює з попереднім релізом.
+          fetch-depth: 0
 
       - name: Поставити JDK 21
         uses: actions/setup-java@v6
@@ -27,25 +30,29 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Генератори Go, Dart і openapi-generator їдуть у Docker — на раннері він
-      # уже є, тож ставити три тулчейни окремо не треба. Те саме, що й локально.
+      # Генератори Go, Dart, TS, Python і openapi-generator їдуть у Docker — на
+      # раннері він уже є, тож тулчейни окремо не ставимо. Те саме, що й локально.
       - name: Перевірити контракт і схеми подій
         run: make lint
 
       - name: Згенерований код відповідає схемам
         run: make check
 
-      - name: Тести трьох мов
+      - name: Сумісність із попереднім тегом
+        run: make compat
+
+      - name: Тести п'яти мов
         run: make test
 
       - name: Версія розставлена всюди однаково
         run: |
           set -euo pipefail
           python3 tools/set-version.py
-          git diff --exit-code -- VERSION java/pom.xml tools/openapi-generator-dart.yaml openapi/openapi.yaml
+          git diff --exit-code -- VERSION java/pom.xml tools/openapi-generator-dart.yaml openapi/openapi.yaml \
+            ts/package.json ts/package-lock.json python/pyproject.toml
 
   publish:
-    name: Публікація Maven-пакета
+    name: Публікація Maven- і npm-пакетів
     needs: verify
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -84,6 +91,24 @@ jobs:
       - name: Опублікувати ua.kite:kite-contracts
         run: mvn -B -ntp -f java/pom.xml -DskipTests deploy
 
+      # Go, Dart і Python реєстру не мають: їх беруть із git за цим самим тегом,
+      # а згенерований код уже лежить у ньому. Публікувати треба лише npm.
+      - name: Поставити Node для публікації
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          registry-url: https://npm.pkg.github.com
+          scope: '@kite'
+
+      - name: Зібрати @kite/contracts
+        run: make ts
+
+      - name: Опублікувати @kite/contracts
+        working-directory: ts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish
+
       - name: Що тепер підключати
         run: |
           v="$(cat VERSION)"
@@ -92,5 +117,48 @@ jobs:
             echo
             echo "- Java: \`ua.kite:kite-contracts:$v\` у GitHub Packages"
             echo "- Go: \`go get github.com/kite-post/kite-contracts@v$v\`"
+            echo "- TypeScript: \`@kite/contracts@$v\` у GitHub Packages"
             echo "- Dart: git-залежність із \`ref: v$v\`, шлях \`dart\`"
+            echo "- Python: \`kite-contracts @ git+https://github.com/kite-post/kite-contracts@v$v#subdirectory=python\`"
+            echo
+            echo "Або в репозиторії сервіса: \`make contracts V=$v\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  announce:
+    name: Розіслати версію сервісам
+    needs: publish
+    runs-on: ubuntu-latest
+    # Версія одна на всі репозиторії: після релізу кожен споживач отримує подію і
+    # сам відкриває собі PR з make contracts V=… (workflow contracts-bump у .github).
+    # Споживач — будь-який репозиторій організації з топіком kite-contracts,
+    # включно з шаблонами: новий сервіс має народжуватися на свіжій версії. Без токена крок тихо пропускається, як і
+    # bump-infra-version.
+    steps:
+      - name: Надіслати kite-contracts-released
+        env:
+          GH_TOKEN: ${{ secrets.CONTRACTS_BUMP_TOKEN }}
+          ORG: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          v="${GITHUB_REF_NAME#v}"
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::notice::CONTRACTS_BUMP_TOKEN не заданий — версію сервісам не розсилаю."
+            echo "Додай секрет CONTRACTS_BUMP_TOKEN в організації, щоб сервіси отримували PR автоматично." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          repos="$(gh repo list "$ORG" --topic kite-contracts --no-archived --limit 200 \
+            --json nameWithOwner --jq '.[].nameWithOwner')"
+          if [ -z "$repos" ]; then
+            echo "::notice::Репозиторіїв із топіком kite-contracts немає."
+            exit 0
+          fi
+
+          echo "### v$v розіслано" >> "$GITHUB_STEP_SUMMARY"
+          for repo in $repos; do
+            gh api "repos/$repo/dispatches" -X POST \
+              -f event_type=kite-contracts-released \
+              -F "client_payload[version]=$v" \
+              && echo "- $repo" >> "$GITHUB_STEP_SUMMARY" \
+              || echo "::warning::$repo не прийняв подію"
+          done
