@@ -98,12 +98,12 @@ jobs:
         with:
           node-version: '26'
           registry-url: https://npm.pkg.github.com
-          scope: '@kite'
+          scope: '@kite-post'
 
-      - name: Зібрати @kite/contracts
+      - name: Зібрати @kite-post/contracts
         run: make ts
 
-      - name: Опублікувати @kite/contracts
+      - name: Опублікувати @kite-post/contracts
         working-directory: ts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -117,7 +117,7 @@ jobs:
             echo
             echo "- Java: \`ua.kite:kite-contracts:$v\` у GitHub Packages"
             echo "- Go: \`go get github.com/kite-post/kite-contracts@v$v\`"
-            echo "- TypeScript: \`@kite/contracts@$v\` у GitHub Packages"
+            echo "- TypeScript: \`@kite-post/contracts@$v\` у GitHub Packages"
             echo "- Dart: git-залежність із \`ref: v$v\`, шлях \`dart\`"
             echo "- Python: \`kite-contracts @ git+https://github.com/kite-post/kite-contracts@v$v#subdirectory=python\`"
             echo

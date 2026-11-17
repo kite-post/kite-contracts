@@ -66,10 +66,10 @@ def main() -> int:
     text = lock.read_text(encoding="utf-8")
     # Версія кореневого пакета стоїть у lock-файлі двічі: зверху і в packages[""].
     text, n = re.subn(
-        r'(?s)("name": "@kite/contracts",\s*"version": )"[^"]+"', rf'\g<1>"{version}"', text
+        r'(?s)("name": "@kite-post/contracts",\s*"version": )"[^"]+"', rf'\g<1>"{version}"', text
     )
     if n != 2:
-        print("не знайшов версію @kite/contracts у ts/package-lock.json", file=sys.stderr)
+        print("не знайшов версію @kite-post/contracts у ts/package-lock.json", file=sys.stderr)
         return 1
     lock.write_text(text, encoding="utf-8")
 

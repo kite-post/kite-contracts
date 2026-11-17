@@ -12,7 +12,7 @@ events/api.schema.json дзеркало REST-схем для подій — ге
 java/                  Maven-пакет ua.kite:kite-contracts
 kite/                  Go-пакет github.com/kite-post/kite-contracts/kite
 dart/                  Dart-пакет kite_contracts
-ts/                    npm-пакет @kite/contracts
+ts/                    npm-пакет @kite-post/contracts
 python/                Python-пакет kite-contracts (pydantic)
 tools/                 бандлер, валідатор, генератори, перевірка сумісності
 examples/              приклади подій, на яких тримаються тести трьох мов
@@ -49,7 +49,7 @@ make verify     # те саме, що й CI: lint + check + compat + тести 
 | Мова       | Генератор                                     | Як дістається сервісу                    | Код у git |
 | ---------- | --------------------------------------------- | ---------------------------------------- | --------- |
 | Java       | openapi-generator (`spring`, `java/native`)   | Maven-пакет у GitHub Packages            | ні        |
-| TypeScript | openapi-typescript + openapi-fetch            | npm-пакет `@kite/contracts`, GitHub Packages | ні (лише `*.gen.ts`) |
+| TypeScript | openapi-typescript + openapi-fetch            | npm-пакет `@kite-post/contracts`, GitHub Packages | ні (лише `*.gen.ts`) |
 | Go         | oapi-codegen                                  | Go-модуль з git за тегом                 | так       |
 | Dart       | openapi-generator (`dart`)                    | git-залежність за тегом, шлях `dart`     | так       |
 | Python     | datamodel-code-generator (pydantic v2)        | pip з git за тегом, підкаталог `python`  | так       |
@@ -102,11 +102,11 @@ dependencies:
 `@kite/ui`:
 
 ```bash
-pnpm add --save-exact @kite/contracts@0.2.0
+pnpm add --save-exact @kite-post/contracts@0.2.0
 ```
 
 ```ts
-import { createKiteClient, kiteEventRegistry, type PublicTracking } from '@kite/contracts'
+import { createKiteClient, kiteEventRegistry, type PublicTracking } from '@kite-post/contracts'
 
 const api = createKiteClient({ baseUrl: '/api/v1' })
 const { data } = await api.GET('/public/track/{trackingNumber}', {

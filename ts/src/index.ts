@@ -1,4 +1,4 @@
-// Точка входу пакета @kite/contracts. Руками тут лише клієнт; типи й реєстр —
+// Точка входу пакета @kite-post/contracts. Руками тут лише клієнт; типи й реєстр —
 // згенеровані (schema.gen.ts, registry.gen.ts) і правляться через схеми.
 import createClient, { type ClientOptions } from "openapi-fetch";
 

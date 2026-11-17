@@ -65,7 +65,7 @@ generate-ts: bundle ## TypeScript: типи API і подій для Vue-зас�
 generate-python: bundle generate-registry ## Python: pydantic-моделі для ai-service і симулятора
 	$(PY) sh tools/gen-python.sh
 
-ts: generate-ts ## Зібрати npm-пакет @kite/contracts у ts/dist
+ts: generate-ts ## Зібрати npm-пакет @kite-post/contracts у ts/dist
 	$(NODE) npm run -s build
 
 java: bundle ## Зібрати Maven-пакет ua.kite:kite-contracts

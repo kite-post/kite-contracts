@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kite-contracts"
-version = "0.2.0"
+version = "0.2.1"
 description = "Pydantic-моделі REST-контракту і подій Kite, згенеровані з kite-contracts."
 license = "MIT"
 requires-python = ">=3.12"

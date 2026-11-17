@@ -7,7 +7,7 @@ outputDir: dart
 additionalProperties:
   pubName: kite_contracts
   pubLibrary: kite_contracts
-  pubVersion: 0.2.0
+  pubVersion: 0.2.1
   pubDescription: "Моделі REST-контракту і подій Kite, згенеровані з kite-contracts."
   pubAuthor: Kite
   pubHomepage: https://github.com/kite-post/kite-contracts
