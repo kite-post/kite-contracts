@@ -79,6 +79,16 @@ def main() -> int:
     common = json.loads((EVENTS / "common.schema.json").read_text(encoding="utf-8"))
     common_defs = set(common["$defs"])
 
+    # ActorRole — актори подій, Role — усі ролі realm (3.1): перший має бути
+    # підмножиною другого, інакше подія назве роль, якої Keycloak не видає.
+    if api_path.exists():
+        api_doc = json.loads(api_path.read_text(encoding="utf-8"))["$defs"]
+        realm = set(api_doc.get("Role", {}).get("enum", []))
+        actors = set(common["$defs"].get("ActorRole", {}).get("enum", []))
+        check(bool(realm), "api.schema.json: немає переліку Role")
+        for extra in sorted(actors - realm):
+            check(False, f"common.schema.json: ActorRole містить {extra}, якого немає в Role")
+
     files = sorted(
         p for p in EVENTS.rglob("*.schema.json") if p.name not in RESERVED
     )

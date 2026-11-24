@@ -1,6 +1,6 @@
 {
   "name": "@kite-post/contracts",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Типи REST-контракту і подій Kite та клієнт API, згенеровані з kite-contracts.",
   "license": "MIT",
   "type": "module",

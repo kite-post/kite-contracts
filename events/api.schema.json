@@ -147,6 +147,23 @@
         "SYSTEM"
       ]
     },
+    "Role": {
+      "type": "string",
+      "description": "Роль у realm `kite` Keycloak — усі ролі з 3.1 і службова `SYSTEM`; імена збігаються з ролями realm і claim `realm_access.roles` access-токена. Не плутати з `ActorRole`: той описує лише того, хто виконав дію в подіях (персонал і `SYSTEM`), і є підмножиною цього переліку.",
+      "enum": [
+        "CLIENT",
+        "BIZ_OWNER",
+        "BIZ_MEMBER",
+        "OPERATOR",
+        "SORTER",
+        "SHIFT_MANAGER",
+        "DRIVER",
+        "DISPATCHER",
+        "SUPPORT",
+        "ADMIN",
+        "SYSTEM"
+      ]
+    },
     "ShipmentStatus": {
       "type": "string",
       "description": "Стани з 7.1",

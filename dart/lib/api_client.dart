@@ -422,6 +422,8 @@ class ApiClient {
           return QuoteRequest.fromJson(value);
         case 'RefreshRequest':
           return RefreshRequest.fromJson(value);
+        case 'Role':
+          return RoleTypeTransformer().decode(value);
         case 'RouteStop':
           return RouteStop.fromJson(value);
         case 'ScanBatch':
