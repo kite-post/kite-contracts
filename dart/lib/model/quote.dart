@@ -13,12 +13,22 @@ part of kite_contracts;
 class Quote {
   /// Returns a new [Quote] instance.
   Quote({
+    this.id,
     required this.total,
     this.lines = const [],
     required this.zone,
     required this.chargeableWeightGrams,
     required this.expiresAt,
   });
+
+  /// Збережений розрахунок (6.2, `quote`). Є лише у відповіді внутрішнього `/internal/v1/pricing/quotes` — накладна посилається на нього, щоб ціна не змінилась між створенням і оплатою. 
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  String? id;
 
   Money total;
 
@@ -34,6 +44,7 @@ class Quote {
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is Quote &&
+    other.id == id &&
     other.total == total &&
     _deepEquality.equals(other.lines, lines) &&
     other.zone == zone &&
@@ -43,6 +54,7 @@ class Quote {
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
+    (id == null ? 0 : id!.hashCode) +
     (total.hashCode) +
     (lines.hashCode) +
     (zone.hashCode) +
@@ -50,10 +62,15 @@ class Quote {
     (expiresAt.hashCode);
 
   @override
-  String toString() => 'Quote[total=$total, lines=$lines, zone=$zone, chargeableWeightGrams=$chargeableWeightGrams, expiresAt=$expiresAt]';
+  String toString() => 'Quote[id=$id, total=$total, lines=$lines, zone=$zone, chargeableWeightGrams=$chargeableWeightGrams, expiresAt=$expiresAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
+    if (this.id != null) {
+      json[r'id'] = this.id;
+    } else {
+      json[r'id'] = null;
+    }
       json[r'total'] = this.total;
       json[r'lines'] = this.lines;
       json[r'zone'] = this.zone;
@@ -81,6 +98,7 @@ class Quote {
       }());
 
       return Quote(
+        id: mapValueOfType<String>(json, r'id'),
         total: Money.fromJson(json[r'total'])!,
         lines: QuoteLine.listFromJson(json[r'lines']),
         zone: DeliveryZone.fromJson(json[r'zone'])!,

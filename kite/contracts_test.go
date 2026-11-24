@@ -1,6 +1,7 @@
 package kite
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -85,4 +86,49 @@ func TestRegistryMatchesSchemasOnDisk(t *testing.T) {
 			t.Errorf("тип %s є в registry.json, але не в коді", e.Type)
 		}
 	}
+}
+
+func TestPermissionsFromTokenRoles(t *testing.T) {
+	// Так приходять ролі з realm_access.roles: поруч зі справжньою — службові ролі Keycloak.
+	roles := []string{"default-roles-kite", "offline_access", "CLIENT"}
+	if !HasPermission(roles, PermissionSHIPMENTCREATEOWN) {
+		t.Error("CLIENT має створювати свої відправлення")
+	}
+	if HasPermission(roles, PermissionSHIPMENTREADALL) {
+		t.Error("CLIENT не бачить чужих відправлень")
+	}
+	if HasPermission([]string{"offline_access"}, PermissionSHIPMENTREADOWN) {
+		t.Error("незнайома роль нічого не дає")
+	}
+	// 3.2: адміністратор не створює відправлень — у нього явний список, а не «все».
+	if HasPermission([]string{string(RoleADMIN)}, PermissionSHIPMENTCREATEOWN) {
+		t.Error("ADMIN не створює відправлень (3.2)")
+	}
+	got := PermissionsOf([]string{"SORTER", "SHIFT_MANAGER"})
+	if _, ok := got[PermissionDISCREPANCYMANAGE]; !ok {
+		t.Error("дозволи ролей мають обʼєднуватись")
+	}
+}
+
+func TestEveryRoleHasPermissionEntry(t *testing.T) {
+	for _, role := range []Role{RoleCLIENT, RoleBIZOWNER, RoleBIZMEMBER, RoleOPERATOR, RoleSORTER,
+		RoleSHIFTMANAGER, RoleDRIVER, RoleDISPATCHER, RoleSUPPORT, RoleADMIN, RoleSYSTEM} {
+		if len(RolePermissions[role]) == 0 {
+			t.Errorf("роль %s без дозволів", role)
+		}
+	}
+	if !slices.Contains(RolePermissions[RoleSYSTEM], PermissionPRICINGQUOTE) {
+		t.Error("сервісний акаунт кличе pricing (5.4, п. 7)")
+	}
+}
+
+func TestInternalClientsExist(t *testing.T) {
+	// Клієнти внутрішніх викликів фази 1 — з того самого пакета, що й моделі.
+	c, err := NewClientWithResponses("http://pricing-service:8080")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var _ func(context.Context, InternalQuoteRequest, ...RequestEditorFn) (*CalculateInternalQuoteResponse, error) = c.CalculateInternalQuoteWithResponse
+	var _ func(context.Context, *ResolveRouteParams, ...RequestEditorFn) (*ResolveRouteResponse, error) = c.ResolveRouteWithResponse
+	var _ func(context.Context, ProviderPaymentEvent, ...RequestEditorFn) (*ReceiveProviderEventResponse, error) = c.ReceiveProviderEventWithResponse
 }

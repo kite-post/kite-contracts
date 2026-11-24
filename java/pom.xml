@@ -11,9 +11,10 @@
 
   <name>kite-contracts</name>
   <description>
-    Моделі REST-контракту, інтерфейси API для Spring і класи подій CloudEvents,
-    згенеровані з build/kite-contracts.openapi.json. Руками тут нічого не
-    пишеться: правити треба openapi/openapi.yaml та events/**.
+    Моделі REST-контракту, інтерфейси API для Spring, клієнт внутрішніх API і
+    класи подій CloudEvents, згенеровані з build/kite-contracts.openapi.json.
+    Руками написана лише перевірка дозволів (ua.kite.contracts.auth); решту
+    правити через openapi/openapi.yaml, events/** та auth/permissions.json.
   </description>
   <url>https://github.com/kite-post/kite-contracts</url>
 
@@ -111,6 +112,11 @@
       <resource>
         <directory>${project.basedir}/../events</directory>
         <targetPath>kite/contracts/events</targetPath>
+      </resource>
+      <!-- Мапа «роль → дозволи» (3.2): її читає ua.kite.contracts.auth.Permissions. -->
+      <resource>
+        <directory>${project.basedir}/../auth</directory>
+        <targetPath>kite/contracts/auth</targetPath>
       </resource>
       <resource>
         <directory>${project.basedir}/../build</directory>

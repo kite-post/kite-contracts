@@ -43,4 +43,17 @@ void main() {
       expect(meta.partitionKey, isNotEmpty);
     }
   });
+
+  test('дозволи беруться з ролей токена (3.2)', () {
+    // Так приходять ролі з realm_access.roles: поруч зі справжньою — службові ролі Keycloak.
+    const roles = ['default-roles-kite', 'offline_access', 'CLIENT'];
+
+    expect(hasPermission(roles, Permission.SHIPMENT_CREATE_OWN), isTrue);
+    expect(hasPermission(roles, Permission.SHIPMENT_READ_ALL), isFalse);
+    expect(hasPermission(['ADMIN'], Permission.SHIPMENT_CREATE_OWN), isFalse,
+        reason: 'ADMIN не створює відправлень (3.2)');
+    expect(permissionsOf(['SORTER', 'SHIFT_MANAGER']),
+        contains(Permission.DISCREPANCY_MANAGE));
+    expect(kiteRolePermissions.keys.toSet(), Role.values.map((r) => r.value).toSet());
+  });
 }

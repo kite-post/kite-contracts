@@ -16,6 +16,9 @@
   • поле стало обов'язковим;
   • зникло значення enum.
 
+Окремо — переліки Role і Permission та мапа auth/permissions.json: зникла роль
+чи дозвіл — помилка, роль утратила дозвіл — попередження.
+
 Нове значення enum — не помилка, але попередження: споживач, що розбирає enum
 суворо, на ньому впаде, тож хай читає незнайомі значення як «інше».
 """
@@ -28,6 +31,7 @@ import sys
 
 BUNDLE = pathlib.Path("build/kite-contracts.openapi.json")
 REGISTRY = pathlib.Path("events/registry.json")
+AUTH = pathlib.Path("auth/permissions.json")
 PREFIX = "#/components/schemas/"
 
 errors: list[str] = []
@@ -100,6 +104,36 @@ def compare(base: dict, head: dict, where: str) -> None:
             errors.append(f"{where}: {combo} змінився — це не адитивна зміна")
 
 
+def check_permissions(base_root: pathlib.Path, head_root: pathlib.Path,
+                      base_schemas: dict, head_schemas: dict) -> None:
+    """Role і Permission: oasdiff їх не бачить — на них не посилається жоден шлях.
+
+    Зниклий дозвіл чи роль ламають код споживачів (константи переліку), тож це
+    помилка. Роль, яка втратила дозвіл, — свідоме звуження матриці 3.2: лише
+    попередження, щоб його помітили в рев'ю.
+    """
+    for name in ("Role", "Permission"):
+        if name in base_schemas:
+            if name not in head_schemas:
+                errors.append(f"перелік {name} зник")
+            else:
+                compare(base_schemas[name], head_schemas[name], name)
+    base_file = base_root / AUTH
+    if not base_file.exists():
+        return
+    base = json.loads(base_file.read_text(encoding="utf-8"))["roles"]
+    head = json.loads((head_root / AUTH).read_text(encoding="utf-8"))["roles"]
+    for role, perms in base.items():
+        if role not in head:
+            errors.append(f"роль {role} зникла з auth/permissions.json")
+            continue
+        for perm in sorted(set(perms) - set(head[role])):
+            notes.append(f"роль {role} більше не має дозволу {perm} — звуження матриці 3.2")
+    for role, perms in head.items():
+        for perm in sorted(set(perms) - set(base.get(role, []))):
+            print(f"  + {role}: {perm}")
+
+
 def main() -> int:
     if len(sys.argv) != 3:
         print(__doc__, file=sys.stderr)
@@ -124,6 +158,8 @@ def main() -> int:
             errors.append(f"схема {name} зникла, а на неї посилаються події")
             continue
         compare(base_schemas[name], head_schemas[name], name)
+
+    check_permissions(base_root, head_root, base_schemas, head_schemas)
 
     added = sorted(set(head_events) - {e["type"] for e in base_reg["events"]})
     for t in added:

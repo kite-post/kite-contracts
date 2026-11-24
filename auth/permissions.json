@@ -1,0 +1,130 @@
+{
+  "$comment": "Джерело правди для дозволів (3.2). Keycloak видає лише роль, а що вона дозволяє — тут. З цього файлу bundle.py робить перелік Permission у контракті, gen-permissions.py — мапу «роль → дозволи» для Go, Dart, TypeScript і Python; Java читає його з jar. Ім'я дозволу — <ресурс>:<дія>[:<чиє>], де own — свої відправлення, org — своєї організації, location — свого відділення чи хабу (прив'язку дає network.staff_assignment, 3.1), on-behalf — за клієнта, all — будь-які.",
+  "permissions": [
+    { "name": "shipment:create:own", "description": "Створити своє відправлення і вести його до прийому: чернетка, підтвердження, скасування" },
+    { "name": "shipment:create:org", "description": "Те саме від імені своєї організації" },
+    { "name": "shipment:create:on-behalf", "description": "Те саме за клієнта на касі відділення" },
+    { "name": "shipment:read:own", "description": "Повні дані відправлень, де користувач відправник чи отримувач" },
+    { "name": "shipment:read:org", "description": "Повні дані відправлень своєї організації" },
+    { "name": "shipment:read:location", "description": "Повні дані відправлень у своєму відділенні" },
+    { "name": "shipment:read:limited", "description": "Лише номер, вага й маршрут — без персональних даних" },
+    { "name": "shipment:read:number", "description": "Лише номер відправлення (маніфест рейсу)" },
+    { "name": "shipment:read:all", "description": "Повні дані будь-якого відправлення" },
+    { "name": "delivery:manage:own", "description": "Керувати доставкою свого відправлення як отримувач: переадресація, довірена особа, відпустка, продовження" },
+    { "name": "delivery:manage:org", "description": "Керувати доставкою відправлень своєї організації як відправник" },
+    { "name": "delivery:manage:on-behalf", "description": "Керувати доставкою за зверненням клієнта у відділенні" },
+    { "name": "delivery:manage:all", "description": "Керувати доставкою будь-якого відправлення" },
+    { "name": "scan:branch", "description": "Сканувати прийом і видачу у відділенні" },
+    { "name": "scan:hub", "description": "Сканувати в хабі, формувати й закривати мішки" },
+    { "name": "scan:device", "description": "Слати скани від імені пристрою: стаціонарний сканер, Kite Box" },
+    { "name": "trip:load", "description": "Сканувати завантаження і розвантаження рейсу" },
+    { "name": "trip:manage", "description": "Створювати рейси, вести маніфести і звірку" },
+    { "name": "discrepancy:manage", "description": "Оформлювати акти розбіжностей" },
+    { "name": "claim:create:own", "description": "Подати претензію щодо свого відправлення" },
+    { "name": "claim:create:org", "description": "Подати претензію від імені своєї організації" },
+    { "name": "claim:create:on-behalf", "description": "Подати претензію за клієнта у відділенні" },
+    { "name": "claim:mark-damage", "description": "Позначити пошкодження посилки під час обробки" },
+    { "name": "claim:review", "description": "Розглядати претензії і приймати рішення" },
+    { "name": "payment:create:own", "description": "Оплатити своє відправлення чи послугу" },
+    { "name": "payment:accept-cash", "description": "Прийняти оплату на касі відділення (FR-902)" },
+    { "name": "ticket:create:own", "description": "Створити тікет підтримки і писати в ньому" },
+    { "name": "ticket:handle", "description": "Відповідати на тікети підтримки" },
+    { "name": "pii:read", "description": "Шукати відправлення за телефоном і ПІБ, бачити персональні дані; кожен доступ логується (FR-1107)" },
+    { "name": "dispatch:read", "description": "Диспетчерська: карта мережі, завантаження хабів, посилки без сканів" },
+    { "name": "incident:manage", "description": "Створювати і закривати інциденти мережі" },
+    { "name": "tariff:write", "description": "Змінювати тарифи, ціни послуг і промокоди" },
+    { "name": "network:write", "description": "Змінювати мережу: точки, хаби, лінії, маршрутизацію, розклад рейсів" },
+    { "name": "user:manage", "description": "Керувати користувачами персоналу, ролями і прив'язками до точок" },
+    { "name": "audit:read", "description": "Читати журнал дій персоналу і доступів до персональних даних" },
+    { "name": "org:manage", "description": "Керувати організацією: реквізити, учасники" },
+    { "name": "org:finance", "description": "Фінанси організації: рахунки, акти, виплати післяплати" },
+    { "name": "api-key:manage", "description": "Керувати ключами API і вебхуками організації" },
+    { "name": "pricing:quote", "description": "Внутрішній виклик: розрахунок ціни в pricing-service (5.4, п. 7)" },
+    { "name": "network:route", "description": "Внутрішній виклик: маршрут і зона між точками в network-service (5.4, п. 7)" }
+  ],
+  "roles": {
+    "CLIENT": [
+      "shipment:create:own",
+      "shipment:read:own",
+      "delivery:manage:own",
+      "claim:create:own",
+      "payment:create:own",
+      "ticket:create:own"
+    ],
+    "BIZ_OWNER": [
+      "shipment:create:org",
+      "shipment:read:org",
+      "delivery:manage:org",
+      "claim:create:org",
+      "payment:create:own",
+      "ticket:create:own",
+      "org:manage",
+      "org:finance",
+      "api-key:manage"
+    ],
+    "BIZ_MEMBER": [
+      "shipment:create:org",
+      "shipment:read:org",
+      "delivery:manage:org",
+      "claim:create:org",
+      "ticket:create:own"
+    ],
+    "OPERATOR": [
+      "shipment:create:on-behalf",
+      "shipment:read:location",
+      "delivery:manage:on-behalf",
+      "scan:branch",
+      "trip:load",
+      "claim:create:on-behalf",
+      "payment:accept-cash"
+    ],
+    "SORTER": [
+      "shipment:read:limited",
+      "scan:hub",
+      "trip:load",
+      "claim:mark-damage"
+    ],
+    "SHIFT_MANAGER": [
+      "shipment:read:limited",
+      "scan:hub",
+      "trip:load",
+      "trip:manage",
+      "discrepancy:manage",
+      "claim:mark-damage"
+    ],
+    "DRIVER": [
+      "shipment:read:number",
+      "trip:load"
+    ],
+    "DISPATCHER": [
+      "shipment:read:limited",
+      "dispatch:read",
+      "incident:manage"
+    ],
+    "SUPPORT": [
+      "shipment:read:all",
+      "delivery:manage:all",
+      "claim:review",
+      "ticket:handle",
+      "pii:read"
+    ],
+    "ADMIN": [
+      "shipment:read:all",
+      "delivery:manage:all",
+      "claim:review",
+      "ticket:handle",
+      "pii:read",
+      "dispatch:read",
+      "incident:manage",
+      "tariff:write",
+      "network:write",
+      "user:manage",
+      "audit:read"
+    ],
+    "SYSTEM": [
+      "scan:device",
+      "pricing:quote",
+      "network:route"
+    ]
+  }
+}

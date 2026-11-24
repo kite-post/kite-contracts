@@ -109,6 +109,15 @@ String parameterToString(dynamic value) {
   if (value is PaymentSubject) {
     return PaymentSubjectTypeTransformer().encode(value).toString();
   }
+  if (value is Permission) {
+    return PermissionTypeTransformer().encode(value).toString();
+  }
+  if (value is ProviderFailureCode) {
+    return ProviderFailureCodeTypeTransformer().encode(value).toString();
+  }
+  if (value is ProviderPaymentEventType) {
+    return ProviderPaymentEventTypeTypeTransformer().encode(value).toString();
+  }
   if (value is Role) {
     return RoleTypeTransformer().encode(value).toString();
   }

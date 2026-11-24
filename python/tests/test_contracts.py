@@ -7,8 +7,23 @@ import pathlib
 
 import pytest
 
-from kite_contracts import EVENT_MODELS, EVENT_REGISTRY, TOPICS, UnknownEventTypeError, parse_event
-from kite_contracts.models import ScanUnitScannedEvent, ShipmentStatus, ShipmentStatusChangedEvent
+from kite_contracts import (
+    EVENT_MODELS,
+    EVENT_REGISTRY,
+    ROLE_PERMISSIONS,
+    TOPICS,
+    UnknownEventTypeError,
+    has_permission,
+    parse_event,
+    permissions_of,
+)
+from kite_contracts.models import (
+    Permission,
+    Role,
+    ScanUnitScannedEvent,
+    ShipmentStatus,
+    ShipmentStatusChangedEvent,
+)
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
@@ -63,3 +78,14 @@ def test_registry_matches_registry_json() -> None:
         assert meta.topic == entry["topic"]
         assert meta.topic in TOPICS
         assert meta.partition_key == entry["partitionKey"]
+
+
+def test_permissions_from_token_roles() -> None:
+    # Так приходять ролі з realm_access.roles: поруч зі справжньою — службові ролі Keycloak.
+    roles = ["default-roles-kite", "offline_access", "CLIENT"]
+
+    assert has_permission(roles, Permission.SHIPMENT_CREATE_OWN)
+    assert not has_permission(roles, Permission.SHIPMENT_READ_ALL)
+    assert not has_permission(["ADMIN"], Permission.SHIPMENT_CREATE_OWN), "ADMIN не створює відправлень (3.2)"
+    assert Permission.DISCREPANCY_MANAGE in permissions_of(["SORTER", "SHIFT_MANAGER"])
+    assert set(ROLE_PERMISSIONS) == set(Role)

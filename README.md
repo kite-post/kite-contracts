@@ -9,6 +9,7 @@ openapi/openapi.yaml   REST за шлюзом: /api/v1 (розділ 9)
 events/**.schema.json  JSON Schema подій + конверт CloudEvents (розділи 8, 9.7)
 events/registry.json   тип події → топік, продюсер, споживачі, ключ розділу
 events/api.schema.json дзеркало REST-схем для подій — генерується, не правиться
+auth/permissions.json  дозволи і мапа «роль → дозволи» (3.2)
 java/                  Maven-пакет ua.kite:kite-contracts
 kite/                  Go-пакет github.com/kite-post/kite-contracts/kite
 dart/                  Dart-пакет kite_contracts
@@ -20,9 +21,13 @@ examples/              приклади подій, на яких тримают
 
 ## Правити — тільки джерело
 
-Джерело правди — `openapi/openapi.yaml` і `events/**/*.schema.json`. Решта
-генерується: `events/api.schema.json`, `kite/*.gen.go`, `dart/lib/**`,
-`ts/src/*.gen.ts`, `python/src/kite_contracts/{models,registry}.py`, Java-класи. `make check` падає, якщо згенероване розійшлося зі схемами.
+Джерело правди — `openapi/openapi.yaml`, `events/**/*.schema.json` і
+`auth/permissions.json`. Решта генерується: `events/api.schema.json`,
+`kite/*.gen.go`, `dart/lib/**`, `ts/src/*.gen.ts`,
+`python/src/kite_contracts/{models,registry,permissions}.py`, Java-класи. Руками
+написана лише перевірка дозволу: `kite/authz.go`,
+`java/src/main/java/ua/kite/contracts/auth/Permissions.java` і функції в
+`ts/src/index.ts`. `make check` падає, якщо згенероване розійшлося зі схемами.
 
 Одне ім'я — одне визначення. Схема події не описує тип, який уже є в
 REST-контракті, а посилається на нього:
@@ -66,7 +71,7 @@ Go, Dart і Python реєстру в GitHub Packages не мають, тож ї�
 <dependency>
   <groupId>ua.kite</groupId>
   <artifactId>kite-contracts</artifactId>
-  <version>0.1.0</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 
@@ -132,6 +137,57 @@ topic = EVENT_REGISTRY[event.type].topic  # "shipment.events"
 
 У шаблонах сервісів усе це робить одна команда: `make contracts V=0.2.0`.
 
+## Дозволи
+
+Keycloak кладе в токен лише ролі (`realm_access.roles`), а що вони дозволяють —
+вирішує мапа з `auth/permissions.json` (3.2, 14.2 п. 9). Правка матриці не чіпає
+realm і не роздуває токен: це новий реліз контрактів. Ім'я дозволу —
+`<ресурс>:<дія>[:<чиє>]`: `own` — свої відправлення, `org` — своєї організації,
+`location` — свого відділення чи хабу, `on-behalf` — за клієнта, `all` —
+будь-які. Скоуп (яке саме відділення) дозвіл не несе: його сервіс перевіряє сам,
+за `network.staff_assignment` (3.1).
+
+З `permissions.json` виходить перелік `Permission` у кожній мові і функція
+перевірки, яка бере ролі прямо з токена. Незнайомі ролі
+(`default-roles-kite`, `offline_access`) нічого не дають.
+
+```java
+List<String> roles = jwt.getClaimAsMap("realm_access").get("roles");
+if (!Permissions.has(roles, Permission.SHIPMENT_CREATE_OWN)) throw forbidden();
+```
+
+```go
+if !kite.HasPermission(roles, kite.PermissionSHIPMENTCREATEOWN) { /* 403 */ }
+```
+
+TypeScript, Dart і Python мають `hasPermission` / `has_permission` і
+`permissionsOf` / `permissions_of` — у застосунках, щоб ховати недоступні дії;
+рішення все одно приймає сервіс. `make bundle` перевіряє, що кожна роль із
+`Role` має запис і що кожен дозвіл комусь виданий.
+
+## Внутрішні API
+
+Синхронні виклики між сервісами (5.4, п. 7) описані в тому ж контракті, під
+`/internal/v1/**` з тегами `internal-*`. Шлюз маршрутизує лише `/api/v1`, тож
+назовні вони не виходять; сервіс слухає їх без префікса `/api/v1`.
+
+| Операція | Хто кличе → хто відповідає | Доступ |
+| --- | --- | --- |
+| `POST /internal/v1/pricing/quotes` | shipment → pricing: ціна накладної з `id` збереженого розрахунку | `pricing:quote` |
+| `GET /internal/v1/network/routes` | shipment, pricing → network: зона, зупинки, плановий час | `network:route` |
+| `POST /internal/v1/payments/provider-events` | mock-pay → payment: результат платежу чи повернення | підпис `Kite-Signature` |
+
+Перші два несуть токен сервісного акаунта (`client_credentials`, роль
+`SYSTEM`); потрібний дозвіл записаний в операції як `x-kite-permission`.
+Вебхук провайдера підписаний HMAC, як вебхуки бізнесу (9.1). Тайм-аут 2 с і
+circuit breaker — на боці того, хто кличе.
+
+Клієнти генеруються разом із рештою: у Java — `ua.kite.contracts.client.Internal*Api`
+(адресу задає сервіс: `apiClient.updateBaseUri("http://pricing-service:8080")`),
+у Go — `kite.NewClientWithResponses("http://pricing-service:8080")`. Сторона,
+що відповідає, реалізує `ua.kite.contracts.api.Internal*Api` у контролері без
+`@RequestMapping("/api/v1")` або `kite.ServerInterface` у Go.
+
 ## Версії і сумісність
 
 Версія одна на всі п'ять пакетів, у файлі `VERSION`; `make version V=0.2.0`
@@ -150,8 +206,9 @@ topic = EVENT_REGISTRY[event.type].topic  # "shipment.events"
 `make compat` (і CI на кожен PR) звіряє робочу копію з попереднім тегом:
 REST — `oasdiff breaking`, події — `tools/compat.py`. Помилка — зник тип чи
 поле, змінився тип, формат чи `$ref`, поле стало обов'язковим, зникло значення
-enum, змінились топік чи ключ розділу. Нове значення enum — лише
-попередження: споживач має читати незнайомі значення як «інше».
+enum, змінились топік чи ключ розділу, зникли роль чи дозвіл. Нове значення
+enum і роль, що втратила дозвіл, — лише попередження: споживач має читати
+незнайомі значення як «інше», а звуження матриці має бути помітним у рев'ю.
 
 ## Реліз
 
@@ -184,3 +241,7 @@ git commit -am "kite-contracts 0.3.0" && make release
 - З 0.3.0 — перелік `Role`: усі ролі realm `kite` (3.1), як їх видає
   Keycloak у токені. `ActorRole` лишається переліком акторів подій (персонал і
   `SYSTEM`) і має бути підмножиною `Role` — це перевіряє `make bundle`.
+- З 0.3.0 — дозволи: перелік `Permission`, мапа «роль → дозволи» і перевірка
+  для п'яти мов (3.2).
+- З 0.3.0 — внутрішні API фази 1: розрахунок ціни, маршрут і зона між точками,
+  вебхук mock-pay → payment-service (5.4, п. 7).

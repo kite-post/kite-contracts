@@ -27,4 +27,4 @@ datamodel-codegen \
   --capitalise-enum-members \
   --disable-timestamp \
   --use-double-quotes
-ruff format -q python/src/kite_contracts/registry.py
+ruff format -q python/src/kite_contracts/registry.py python/src/kite_contracts/permissions.py

@@ -9,7 +9,10 @@
     необов'язкове поле зламає старих споживачів (8.3, п. 8);
   • усі $ref ведуть у api.schema.json або common.schema.json і там є;
   • реєстр і каталог events/ описують одне й те саме; ключ розділу є серед
-    полів схеми; коди подій — із каталогу 8.2.
+    полів схеми; коди подій — із каталогу 8.2;
+  • auth/permissions.json: кожна роль із Role має запис, дозволи оголошені й
+    видані хоч комусь; x-kite-permission в операціях — з цього переліку, а
+    кожна операція /internal/ має тег internal-*, servers і дозвіл чи підпис.
 """
 
 from __future__ import annotations
@@ -66,6 +69,64 @@ def closed(node) -> bool:
     if isinstance(node, list):
         return any(closed(v) for v in node)
     return False
+
+
+PERMISSION_RE = re.compile(r"^[a-z][a-z-]*:[a-z][a-z-]*(:[a-z][a-z-]*)?$")
+METHODS = {"get", "put", "post", "patch", "delete", "head", "options"}
+
+
+def check_permissions(api_path: pathlib.Path) -> None:
+    """auth/permissions.json: мапа «роль → дозволи» (3.2) і x-kite-permission в операціях."""
+    where = "auth/permissions.json:"
+    auth = json.loads((ROOT / "auth" / "permissions.json").read_text(encoding="utf-8"))
+    names: list[str] = [p["name"] for p in auth["permissions"]]
+    declared = set(names)
+    for name in sorted({n for n in names if names.count(n) > 1}):
+        check(False, f"{where} дозвіл {name} оголошено двічі")
+    for p in auth["permissions"]:
+        check(bool(PERMISSION_RE.match(p["name"])),
+              f"{where} «{p['name']}» не відповідає <ресурс>:<дія>[:<чиє>]")
+        check(bool(p.get("description")), f"{where} {p['name']} без опису")
+
+    realm: set[str] = set()
+    if api_path.exists():
+        realm = set(json.loads(api_path.read_text(encoding="utf-8"))["$defs"]["Role"]["enum"])
+    roles: dict[str, list[str]] = auth["roles"]
+    for role in sorted(realm - set(roles)):
+        check(False, f"{where} роль {role} є в Role, але не має запису — навіть порожнього")
+    used: set[str] = set()
+    for role, perms in roles.items():
+        check(role in realm, f"{where} роль {role} не з переліку Role")
+        for perm in sorted({x for x in perms if perms.count(x) > 1}):
+            check(False, f"{where} {role}: дозвіл {perm} повторюється")
+        for perm in perms:
+            check(perm in declared, f"{where} {role}: дозволу {perm} немає в permissions")
+        used |= set(perms)
+    for perm in sorted(declared - used):
+        check(False, f"{where} дозвіл {perm} не дано жодній ролі — прибрати або видати")
+
+    spec_path = ROOT / "build" / "openapi.json"
+    if not spec_path.exists():
+        return
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    for path, item in spec["paths"].items():
+        for method, op in item.items():
+            if method not in METHODS:
+                continue
+            at = f"openapi.yaml {method.upper()} {path}:"
+            perm = op.get("x-kite-permission")
+            if perm is not None:
+                check(perm in declared, f"{at} x-kite-permission {perm} не з auth/permissions.json")
+            if path.startswith("/internal/"):
+                check(all(t.startswith("internal-") for t in op.get("tags", [])) and bool(op.get("tags")),
+                      f"{at} внутрішня операція має тег internal-<сервіс>")
+                signed = op.get("security") == [{"providerSignature": []}]
+                check(signed or perm is not None,
+                      f"{at} внутрішня операція без x-kite-permission і без підпису")
+                check(bool(op.get("servers")), f"{at} внутрішня операція без servers — куди її кликати?")
+            else:
+                check(not any(t.startswith("internal-") for t in op.get("tags", [])),
+                      f"{at} тег internal-* лише для шляхів /internal/")
 
 
 def main() -> int:
@@ -162,6 +223,8 @@ def main() -> int:
         domain = entry["schema"].split("/")[0]
         check(entry["topic"] == f"{domain}.events",
               f"{where} схема лежить у events/{domain}, а топік — {entry['topic']}")
+
+    check_permissions(api_path)
 
     on_disk = {p.relative_to(EVENTS).as_posix() for p in files}
     for extra in sorted(on_disk - set(listed)):

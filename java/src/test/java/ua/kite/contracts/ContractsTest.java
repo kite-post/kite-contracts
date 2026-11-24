@@ -69,6 +69,10 @@ class ContractsTest {
       JsonNode spec = mapper.readTree(in);
       assertTrue(spec.get("paths").size() > 0);
       assertEquals(34, spec.get("x-kite-events").size());
+      assertEquals(
+          spec.get("components").get("schemas").get("Role").get("enum").size(),
+          spec.get("x-kite-role-permissions").size(),
+          "кожна роль realm має запис у мапі дозволів");
     }
   }
 }
