@@ -21,7 +21,8 @@ import (
 )
 
 const (
-	BearerAuthScopes = "bearerAuth.Scopes"
+	BearerAuthScopes        = "bearerAuth.Scopes"
+	ProviderSignatureScopes = "providerSignature.Scopes"
 )
 
 // Defines values for ActorRole.
@@ -576,11 +577,11 @@ const (
 
 // Defines values for PaymentFailedDataFailureCode.
 const (
-	DECLINED          PaymentFailedDataFailureCode = "DECLINED"
-	INSUFFICIENTFUNDS PaymentFailedDataFailureCode = "INSUFFICIENT_FUNDS"
-	PROVIDERERROR     PaymentFailedDataFailureCode = "PROVIDER_ERROR"
-	THREEDSFAILED     PaymentFailedDataFailureCode = "THREE_DS_FAILED"
-	TIMEOUT           PaymentFailedDataFailureCode = "TIMEOUT"
+	PaymentFailedDataFailureCodeDECLINED          PaymentFailedDataFailureCode = "DECLINED"
+	PaymentFailedDataFailureCodeINSUFFICIENTFUNDS PaymentFailedDataFailureCode = "INSUFFICIENT_FUNDS"
+	PaymentFailedDataFailureCodePROVIDERERROR     PaymentFailedDataFailureCode = "PROVIDER_ERROR"
+	PaymentFailedDataFailureCodeTHREEDSFAILED     PaymentFailedDataFailureCode = "THREE_DS_FAILED"
+	PaymentFailedDataFailureCodeTIMEOUT           PaymentFailedDataFailureCode = "TIMEOUT"
 )
 
 // Defines values for PaymentFailedEventDatacontenttype.
@@ -677,6 +678,66 @@ const (
 	KitePaymentSucceededV1 PaymentSucceededEventType = "kite.payment.succeeded.v1"
 )
 
+// Defines values for Permission.
+const (
+	PermissionAPIKEYMANAGE           Permission = "api-key:manage"
+	PermissionAUDITREAD              Permission = "audit:read"
+	PermissionCLAIMCREATEONBEHALF    Permission = "claim:create:on-behalf"
+	PermissionCLAIMCREATEORG         Permission = "claim:create:org"
+	PermissionCLAIMCREATEOWN         Permission = "claim:create:own"
+	PermissionCLAIMMARKDAMAGE        Permission = "claim:mark-damage"
+	PermissionCLAIMREVIEW            Permission = "claim:review"
+	PermissionDELIVERYMANAGEALL      Permission = "delivery:manage:all"
+	PermissionDELIVERYMANAGEONBEHALF Permission = "delivery:manage:on-behalf"
+	PermissionDELIVERYMANAGEORG      Permission = "delivery:manage:org"
+	PermissionDELIVERYMANAGEOWN      Permission = "delivery:manage:own"
+	PermissionDISCREPANCYMANAGE      Permission = "discrepancy:manage"
+	PermissionDISPATCHREAD           Permission = "dispatch:read"
+	PermissionINCIDENTMANAGE         Permission = "incident:manage"
+	PermissionNETWORKROUTE           Permission = "network:route"
+	PermissionNETWORKWRITE           Permission = "network:write"
+	PermissionORGFINANCE             Permission = "org:finance"
+	PermissionORGMANAGE              Permission = "org:manage"
+	PermissionPAYMENTACCEPTCASH      Permission = "payment:accept-cash"
+	PermissionPAYMENTCREATEOWN       Permission = "payment:create:own"
+	PermissionPIIREAD                Permission = "pii:read"
+	PermissionPRICINGQUOTE           Permission = "pricing:quote"
+	PermissionSCANBRANCH             Permission = "scan:branch"
+	PermissionSCANDEVICE             Permission = "scan:device"
+	PermissionSCANHUB                Permission = "scan:hub"
+	PermissionSHIPMENTCREATEONBEHALF Permission = "shipment:create:on-behalf"
+	PermissionSHIPMENTCREATEORG      Permission = "shipment:create:org"
+	PermissionSHIPMENTCREATEOWN      Permission = "shipment:create:own"
+	PermissionSHIPMENTREADALL        Permission = "shipment:read:all"
+	PermissionSHIPMENTREADLIMITED    Permission = "shipment:read:limited"
+	PermissionSHIPMENTREADLOCATION   Permission = "shipment:read:location"
+	PermissionSHIPMENTREADNUMBER     Permission = "shipment:read:number"
+	PermissionSHIPMENTREADORG        Permission = "shipment:read:org"
+	PermissionSHIPMENTREADOWN        Permission = "shipment:read:own"
+	PermissionTARIFFWRITE            Permission = "tariff:write"
+	PermissionTICKETCREATEOWN        Permission = "ticket:create:own"
+	PermissionTICKETHANDLE           Permission = "ticket:handle"
+	PermissionTRIPLOAD               Permission = "trip:load"
+	PermissionTRIPMANAGE             Permission = "trip:manage"
+	PermissionUSERMANAGE             Permission = "user:manage"
+)
+
+// Defines values for ProviderFailureCode.
+const (
+	ProviderFailureCodeDECLINED          ProviderFailureCode = "DECLINED"
+	ProviderFailureCodeINSUFFICIENTFUNDS ProviderFailureCode = "INSUFFICIENT_FUNDS"
+	ProviderFailureCodeTHREEDSFAILED     ProviderFailureCode = "THREE_DS_FAILED"
+	ProviderFailureCodeTIMEOUT           ProviderFailureCode = "TIMEOUT"
+)
+
+// Defines values for ProviderPaymentEventType.
+const (
+	PAYMENTFAILED    ProviderPaymentEventType = "PAYMENT_FAILED"
+	PAYMENTSUCCEEDED ProviderPaymentEventType = "PAYMENT_SUCCEEDED"
+	REFUNDFAILED     ProviderPaymentEventType = "REFUND_FAILED"
+	REFUNDSUCCEEDED  ProviderPaymentEventType = "REFUND_SUCCEEDED"
+)
+
 // Defines values for PushSubscriptionKind.
 const (
 	PushSubscriptionKindFCM     PushSubscriptionKind = "FCM"
@@ -713,12 +774,12 @@ const (
 
 // Defines values for ScanOperation.
 const (
-	ScanOperationACCEPT   ScanOperation = "ACCEPT"
-	ScanOperationFILLUNIT ScanOperation = "FILL_UNIT"
-	ScanOperationHANDOVER ScanOperation = "HANDOVER"
-	ScanOperationLOAD     ScanOperation = "LOAD"
-	ScanOperationSORT     ScanOperation = "SORT"
-	ScanOperationUNLOAD   ScanOperation = "UNLOAD"
+	ACCEPT   ScanOperation = "ACCEPT"
+	FILLUNIT ScanOperation = "FILL_UNIT"
+	HANDOVER ScanOperation = "HANDOVER"
+	LOAD     ScanOperation = "LOAD"
+	SORT     ScanOperation = "SORT"
+	UNLOAD   ScanOperation = "UNLOAD"
 )
 
 // Defines values for ScanOutcome.
@@ -1968,6 +2029,26 @@ type GeoPoint struct {
 	Lon float64 `json:"lon"`
 }
 
+// InternalQuoteRequest defines model for InternalQuoteRequest.
+type InternalQuoteRequest struct {
+	// CodAmount Гроші в копійках; валюта завжди UAH (6.1)
+	CodAmount *Money `json:"codAmount,omitempty"`
+
+	// DeclaredValue Гроші в копійках; валюта завжди UAH (6.1)
+	DeclaredValue         *Money             `json:"declaredValue,omitempty"`
+	DestinationLocationId openapi_types.UUID `json:"destinationLocationId"`
+	OriginLocationId      openapi_types.UUID `json:"originLocationId"`
+	Parcels               []ParcelRequest    `json:"parcels"`
+	Payer                 *PayerType         `json:"payer,omitempty"`
+	PromoCode             *string            `json:"promoCode,omitempty"`
+	Services              *[]ServiceCode     `json:"services,omitempty"`
+
+	// ShipmentId Накладна, для якої рахуємо; порожньо — попередній розрахунок
+	ShipmentId *openapi_types.UUID `json:"shipmentId,omitempty"`
+	Type       ShipmentType        `json:"type"`
+	Zone       *DeliveryZone       `json:"zone,omitempty"`
+}
+
 // KiteEventType Усі типи доменних подій Kite з events/registry.json
 type KiteEventType string
 
@@ -2503,6 +2584,21 @@ type Money struct {
 // MoneyCurrency defines model for Money.Currency.
 type MoneyCurrency string
 
+// NetworkRoute Маршрут між двома точками за таблицею маршрутизації і розкладом рейсів
+// (6.2, `routing_rule`, `linehaul_schedule`) — те, що shipment-service
+// записує в `shipment_route`, а pricing-service бере як зону тарифу.
+type NetworkRoute struct {
+	DestinationLocationId openapi_types.UUID `json:"destinationLocationId"`
+	OriginLocationId      openapi_types.UUID `json:"originLocationId"`
+
+	// PlannedDeliveryAt Плановий час прибуття в точку видачі за розкладом
+	PlannedDeliveryAt *time.Time `json:"plannedDeliveryAt"`
+
+	// Stops Від точки прийому до точки видачі включно, у порядку проходження
+	Stops []RouteStop  `json:"stops"`
+	Zone  DeliveryZone `json:"zone"`
+}
+
 // NotificationChannel defines model for NotificationChannel.
 type NotificationChannel string
 
@@ -2935,6 +3031,9 @@ type PaymentSucceededEventSpecversion string
 // PaymentSucceededEventType defines model for PaymentSucceededEvent.Type.
 type PaymentSucceededEventType string
 
+// Permission Дозвіл (3.2): <ресурс>:<дія>[:<чиє>]. Keycloak видає лише роль, а які дозволи вона дає — мапа з auth/permissions.json.
+type Permission string
+
 // Phone Телефон у E.164
 type Phone = string
 
@@ -2986,6 +3085,44 @@ type PromoCodeValidation struct {
 	Valid    bool    `json:"valid"`
 }
 
+// ProviderFailureCode Причина відмови провайдера — для *_FAILED
+type ProviderFailureCode string
+
+// ProviderPaymentEvent Тіло вебхука mock-pay → payment-service (10.3). Необов'язкові поля
+// відсутні, а не null.
+type ProviderPaymentEvent struct {
+	// Amount Гроші в копійках; валюта завжди UAH (6.1)
+	Amount   Money   `json:"amount"`
+	CardMask *string `json:"cardMask,omitempty"`
+
+	// EventId Ідентифікатор події провайдера — ключ ідемпотентності
+	EventId openapi_types.UUID `json:"eventId"`
+
+	// FailureCode Причина відмови провайдера — для *_FAILED
+	FailureCode *ProviderFailureCode `json:"failureCode,omitempty"`
+
+	// FailureReason Людський опис відмови — для *_FAILED
+	FailureReason *string   `json:"failureReason,omitempty"`
+	OccurredAt    time.Time `json:"occurredAt"`
+
+	// PaymentId Платіж payment-service, переданий провайдеру під час створення
+	PaymentId openapi_types.UUID `json:"paymentId"`
+
+	// ProviderReference Ідентифікатор операції в провайдера
+	ProviderReference string `json:"providerReference"`
+
+	// RefundId Повернення коштів — для REFUND_*
+	RefundId *openapi_types.UUID `json:"refundId,omitempty"`
+
+	// Type Що сталося в платіжного провайдера. Таймаут 3-D Secure приходить як
+	// PAYMENT_FAILED з `failureCode: TIMEOUT`.
+	Type ProviderPaymentEventType `json:"type"`
+}
+
+// ProviderPaymentEventType Що сталося в платіжного провайдера. Таймаут 3-D Secure приходить як
+// PAYMENT_FAILED з `failureCode: TIMEOUT`.
+type ProviderPaymentEventType string
+
 // PublicTracking Публічний статус без персональних даних
 type PublicTracking struct {
 	DestinationCity *string `json:"destinationCity,omitempty"`
@@ -3033,8 +3170,13 @@ type Quote struct {
 	ChargeableWeightGrams int64 `json:"chargeableWeightGrams"`
 
 	// ExpiresAt Розрахунок кешується на 15 хв (6.2, `quote`)
-	ExpiresAt time.Time   `json:"expiresAt"`
-	Lines     []QuoteLine `json:"lines"`
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	// Id Збережений розрахунок (6.2, `quote`). Є лише у відповіді
+	// внутрішнього `/internal/v1/pricing/quotes` — накладна посилається
+	// на нього, щоб ціна не змінилась між створенням і оплатою.
+	Id    *openapi_types.UUID `json:"id,omitempty"`
+	Lines []QuoteLine         `json:"lines"`
 
 	// Total Гроші в копійках; валюта завжди UAH (6.1)
 	Total Money        `json:"total"`
@@ -4227,6 +4369,18 @@ type CreateClaimParams struct {
 	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
 }
 
+// ResolveRouteParams defines parameters for ResolveRoute.
+type ResolveRouteParams struct {
+	// OriginLocationId Точка, де відправлення приймуть
+	OriginLocationId openapi_types.UUID `form:"originLocationId" json:"originLocationId"`
+
+	// DestinationLocationId Точка, де його видадуть
+	DestinationLocationId openapi_types.UUID `form:"destinationLocationId" json:"destinationLocationId"`
+
+	// DepartAt Від якого моменту планувати; типово — зараз
+	DepartAt *time.Time `form:"departAt,omitempty" json:"departAt,omitempty"`
+}
+
 // OpenLockerCellParams defines parameters for OpenLockerCell.
 type OpenLockerCellParams struct {
 	// IdempotencyKey Обов'язковий для створення відправлень, платежів і дій з оплатою (9.1).
@@ -4430,6 +4584,12 @@ type CreateClaimJSONRequestBody = CreateClaimRequest
 // CreateClaimAttachmentJSONRequestBody defines body for CreateClaimAttachment for application/json ContentType.
 type CreateClaimAttachmentJSONRequestBody = AttachmentRequest
 
+// ReceiveProviderEventJSONRequestBody defines body for ReceiveProviderEvent for application/json ContentType.
+type ReceiveProviderEventJSONRequestBody = ProviderPaymentEvent
+
+// CalculateInternalQuoteJSONRequestBody defines body for CalculateInternalQuote for application/json ContentType.
+type CalculateInternalQuoteJSONRequestBody = InternalQuoteRequest
+
 // OpenLockerCellJSONRequestBody defines body for OpenLockerCell for application/json ContentType.
 type OpenLockerCellJSONRequestBody = OpenCellRequest
 
@@ -4593,6 +4753,19 @@ type ClientInterface interface {
 	CreateClaimAttachmentWithBody(ctx context.Context, id IdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	CreateClaimAttachment(ctx context.Context, id IdPath, body CreateClaimAttachmentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResolveRoute request
+	ResolveRoute(ctx context.Context, params *ResolveRouteParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ReceiveProviderEventWithBody request with any body
+	ReceiveProviderEventWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ReceiveProviderEvent(ctx context.Context, body ReceiveProviderEventJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CalculateInternalQuoteWithBody request with any body
+	CalculateInternalQuoteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CalculateInternalQuote(ctx context.Context, body CalculateInternalQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// OpenLockerCellWithBody request with any body
 	OpenLockerCellWithBody(ctx context.Context, locationId openapi_types.UUID, params *OpenLockerCellParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4900,6 +5073,66 @@ func (c *Client) CreateClaimAttachmentWithBody(ctx context.Context, id IdPath, c
 
 func (c *Client) CreateClaimAttachment(ctx context.Context, id IdPath, body CreateClaimAttachmentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateClaimAttachmentRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ResolveRoute(ctx context.Context, params *ResolveRouteParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResolveRouteRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReceiveProviderEventWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReceiveProviderEventRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReceiveProviderEvent(ctx context.Context, body ReceiveProviderEventJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReceiveProviderEventRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CalculateInternalQuoteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCalculateInternalQuoteRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CalculateInternalQuote(ctx context.Context, body CalculateInternalQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCalculateInternalQuoteRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -5992,6 +6225,159 @@ func NewCreateClaimAttachmentRequestWithBody(server string, id IdPath, contentTy
 	}
 
 	operationPath := fmt.Sprintf("/claims/%s/attachments", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewResolveRouteRequest generates requests for ResolveRoute
+func NewResolveRouteRequest(server string, params *ResolveRouteParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/internal/v1/network/routes")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "originLocationId", runtime.ParamLocationQuery, params.OriginLocationId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "destinationLocationId", runtime.ParamLocationQuery, params.DestinationLocationId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		if params.DepartAt != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "departAt", runtime.ParamLocationQuery, *params.DepartAt); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewReceiveProviderEventRequest calls the generic ReceiveProviderEvent builder with application/json body
+func NewReceiveProviderEventRequest(server string, body ReceiveProviderEventJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewReceiveProviderEventRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewReceiveProviderEventRequestWithBody generates requests for ReceiveProviderEvent with any type of body
+func NewReceiveProviderEventRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/internal/v1/payments/provider-events")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCalculateInternalQuoteRequest calls the generic CalculateInternalQuote builder with application/json body
+func NewCalculateInternalQuoteRequest(server string, body CalculateInternalQuoteJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCalculateInternalQuoteRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCalculateInternalQuoteRequestWithBody generates requests for CalculateInternalQuote with any type of body
+func NewCalculateInternalQuoteRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/internal/v1/pricing/quotes")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -8327,6 +8713,19 @@ type ClientWithResponsesInterface interface {
 
 	CreateClaimAttachmentWithResponse(ctx context.Context, id IdPath, body CreateClaimAttachmentJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateClaimAttachmentResponse, error)
 
+	// ResolveRouteWithResponse request
+	ResolveRouteWithResponse(ctx context.Context, params *ResolveRouteParams, reqEditors ...RequestEditorFn) (*ResolveRouteResponse, error)
+
+	// ReceiveProviderEventWithBodyWithResponse request with any body
+	ReceiveProviderEventWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReceiveProviderEventResponse, error)
+
+	ReceiveProviderEventWithResponse(ctx context.Context, body ReceiveProviderEventJSONRequestBody, reqEditors ...RequestEditorFn) (*ReceiveProviderEventResponse, error)
+
+	// CalculateInternalQuoteWithBodyWithResponse request with any body
+	CalculateInternalQuoteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CalculateInternalQuoteResponse, error)
+
+	CalculateInternalQuoteWithResponse(ctx context.Context, body CalculateInternalQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*CalculateInternalQuoteResponse, error)
+
 	// OpenLockerCellWithBodyWithResponse request with any body
 	OpenLockerCellWithBodyWithResponse(ctx context.Context, locationId openapi_types.UUID, params *OpenLockerCellParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenLockerCellResponse, error)
 
@@ -8645,6 +9044,84 @@ func (r CreateClaimAttachmentResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r CreateClaimAttachmentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ResolveRouteResponse struct {
+	Body                      []byte
+	HTTPResponse              *http.Response
+	JSON200                   *NetworkRoute
+	ApplicationproblemJSON400 *BadRequest
+	ApplicationproblemJSON401 *Unauthorized
+	ApplicationproblemJSON403 *Forbidden
+	ApplicationproblemJSON404 *NotFound
+	ApplicationproblemJSON422 *UnprocessableEntity
+}
+
+// Status returns HTTPResponse.Status
+func (r ResolveRouteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResolveRouteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ReceiveProviderEventResponse struct {
+	Body                      []byte
+	HTTPResponse              *http.Response
+	ApplicationproblemJSON400 *BadRequest
+	ApplicationproblemJSON401 *Unauthorized
+	ApplicationproblemJSON404 *NotFound
+	ApplicationproblemJSON409 *Conflict
+}
+
+// Status returns HTTPResponse.Status
+func (r ReceiveProviderEventResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReceiveProviderEventResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CalculateInternalQuoteResponse struct {
+	Body                      []byte
+	HTTPResponse              *http.Response
+	JSON200                   *Quote
+	ApplicationproblemJSON400 *BadRequest
+	ApplicationproblemJSON401 *Unauthorized
+	ApplicationproblemJSON403 *Forbidden
+	ApplicationproblemJSON422 *UnprocessableEntity
+}
+
+// Status returns HTTPResponse.Status
+func (r CalculateInternalQuoteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CalculateInternalQuoteResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -9836,6 +10313,49 @@ func (c *ClientWithResponses) CreateClaimAttachmentWithResponse(ctx context.Cont
 	return ParseCreateClaimAttachmentResponse(rsp)
 }
 
+// ResolveRouteWithResponse request returning *ResolveRouteResponse
+func (c *ClientWithResponses) ResolveRouteWithResponse(ctx context.Context, params *ResolveRouteParams, reqEditors ...RequestEditorFn) (*ResolveRouteResponse, error) {
+	rsp, err := c.ResolveRoute(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResolveRouteResponse(rsp)
+}
+
+// ReceiveProviderEventWithBodyWithResponse request with arbitrary body returning *ReceiveProviderEventResponse
+func (c *ClientWithResponses) ReceiveProviderEventWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReceiveProviderEventResponse, error) {
+	rsp, err := c.ReceiveProviderEventWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReceiveProviderEventResponse(rsp)
+}
+
+func (c *ClientWithResponses) ReceiveProviderEventWithResponse(ctx context.Context, body ReceiveProviderEventJSONRequestBody, reqEditors ...RequestEditorFn) (*ReceiveProviderEventResponse, error) {
+	rsp, err := c.ReceiveProviderEvent(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReceiveProviderEventResponse(rsp)
+}
+
+// CalculateInternalQuoteWithBodyWithResponse request with arbitrary body returning *CalculateInternalQuoteResponse
+func (c *ClientWithResponses) CalculateInternalQuoteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CalculateInternalQuoteResponse, error) {
+	rsp, err := c.CalculateInternalQuoteWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCalculateInternalQuoteResponse(rsp)
+}
+
+func (c *ClientWithResponses) CalculateInternalQuoteWithResponse(ctx context.Context, body CalculateInternalQuoteJSONRequestBody, reqEditors ...RequestEditorFn) (*CalculateInternalQuoteResponse, error) {
+	rsp, err := c.CalculateInternalQuote(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCalculateInternalQuoteResponse(rsp)
+}
+
 // OpenLockerCellWithBodyWithResponse request with arbitrary body returning *OpenLockerCellResponse
 func (c *ClientWithResponses) OpenLockerCellWithBodyWithResponse(ctx context.Context, locationId openapi_types.UUID, params *OpenLockerCellParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*OpenLockerCellResponse, error) {
 	rsp, err := c.OpenLockerCellWithBody(ctx, locationId, params, contentType, body, reqEditors...)
@@ -10633,6 +11153,168 @@ func ParseCreateClaimAttachmentResponse(rsp *http.Response) (*CreateClaimAttachm
 			return nil, err
 		}
 		response.ApplicationproblemJSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResolveRouteResponse parses an HTTP response from a ResolveRouteWithResponse call
+func ParseResolveRouteResponse(rsp *http.Response) (*ResolveRouteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResolveRouteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NetworkRoute
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableEntity
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseReceiveProviderEventResponse parses an HTTP response from a ReceiveProviderEventWithResponse call
+func ParseReceiveProviderEventResponse(rsp *http.Response) (*ReceiveProviderEventResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReceiveProviderEventResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCalculateInternalQuoteResponse parses an HTTP response from a CalculateInternalQuoteWithResponse call
+func ParseCalculateInternalQuoteResponse(rsp *http.Response) (*CalculateInternalQuoteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CalculateInternalQuoteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Quote
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableEntity
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
 
 	}
 
@@ -12280,6 +12962,15 @@ type ServerInterface interface {
 	// Отримати посилання для завантаження фото
 	// (POST /claims/{id}/attachments)
 	CreateClaimAttachment(w http.ResponseWriter, r *http.Request, id IdPath)
+	// Маршрут і зона між двома точками
+	// (GET /internal/v1/network/routes)
+	ResolveRoute(w http.ResponseWriter, r *http.Request, params ResolveRouteParams)
+	// Вебхук платіжного провайдера (mock-pay)
+	// (POST /internal/v1/payments/provider-events)
+	ReceiveProviderEvent(w http.ResponseWriter, r *http.Request)
+	// Розрахунок ціни для відправлення
+	// (POST /internal/v1/pricing/quotes)
+	CalculateInternalQuote(w http.ResponseWriter, r *http.Request)
 	// Відкрити комірку (отримання або відправка)
 	// (POST /lockers/{locationId}/open)
 	OpenLockerCell(w http.ResponseWriter, r *http.Request, locationId openapi_types.UUID, params OpenLockerCellParams)
@@ -12587,6 +13278,109 @@ func (siw *ServerInterfaceWrapper) CreateClaimAttachment(w http.ResponseWriter, 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateClaimAttachment(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ResolveRoute operation middleware
+func (siw *ServerInterfaceWrapper) ResolveRoute(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ResolveRouteParams
+
+	// ------------- Required query parameter "originLocationId" -------------
+
+	if paramValue := r.URL.Query().Get("originLocationId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "originLocationId"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "originLocationId", r.URL.Query(), &params.OriginLocationId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "originLocationId", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "destinationLocationId" -------------
+
+	if paramValue := r.URL.Query().Get("destinationLocationId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "destinationLocationId"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "destinationLocationId", r.URL.Query(), &params.DestinationLocationId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "destinationLocationId", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "departAt" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "departAt", r.URL.Query(), &params.DepartAt)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "departAt", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ResolveRoute(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ReceiveProviderEvent operation middleware
+func (siw *ServerInterfaceWrapper) ReceiveProviderEvent(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, ProviderSignatureScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ReceiveProviderEvent(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CalculateInternalQuote operation middleware
+func (siw *ServerInterfaceWrapper) CalculateInternalQuote(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CalculateInternalQuote(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -14512,6 +15306,9 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc("GET "+options.BaseURL+"/claims", wrapper.ListClaims)
 	m.HandleFunc("POST "+options.BaseURL+"/claims", wrapper.CreateClaim)
 	m.HandleFunc("POST "+options.BaseURL+"/claims/{id}/attachments", wrapper.CreateClaimAttachment)
+	m.HandleFunc("GET "+options.BaseURL+"/internal/v1/network/routes", wrapper.ResolveRoute)
+	m.HandleFunc("POST "+options.BaseURL+"/internal/v1/payments/provider-events", wrapper.ReceiveProviderEvent)
+	m.HandleFunc("POST "+options.BaseURL+"/internal/v1/pricing/quotes", wrapper.CalculateInternalQuote)
 	m.HandleFunc("POST "+options.BaseURL+"/lockers/{locationId}/open", wrapper.OpenLockerCell)
 	m.HandleFunc("GET "+options.BaseURL+"/me", wrapper.GetMe)
 	m.HandleFunc("PATCH "+options.BaseURL+"/me", wrapper.UpdateMe)

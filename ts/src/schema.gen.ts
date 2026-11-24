@@ -90,6 +90,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/internal/v1/network/routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Маршрут і зона між двома точками
+         * @description Викликають shipment-service (запланований маршрут накладної, 6.2
+         *     `shipment_route`) і pricing-service (зона для тарифу). Маршрут
+         *     будується за таблицею маршрутизації і розкладом рейсів; відповідь
+         *     можна кешувати до зміни мережі.
+         */
+        get: operations["resolveRoute"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/internal/v1/payments/provider-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Вебхук платіжного провайдера (mock-pay)
+         * @description mock-pay повідомляє payment-service про результат платежу чи
+         *     повернення (10.3). Токена Keycloak у провайдера немає, тож запит
+         *     підписаний: `Kite-Signature: t=<час>,v1=<HMAC-SHA256(secret, t.body)>`,
+         *     як вебхуки бізнесу (9.1); payment-service відкидає підпис, старший за
+         *     5 хв. Ідемпотентність — за `eventId`: повтор отримує 204 без повторної
+         *     обробки. Будь-яка відповідь, крім 2xx, — сигнал mock-pay повторити.
+         */
+        post: operations["receiveProviderEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/internal/v1/pricing/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Розрахунок ціни для відправлення
+         * @description Викликає shipment-service під час створення й підтвердження накладної
+         *     (сага 5.4, п. 4). Та сама математика, що й у публічному калькуляторі
+         *     `/public/quotes`, але розрахунок зберігається (6.2, `quote`) і має `id`,
+         *     на який накладна посилається. Зону pricing-service бере з
+         *     network-service, якщо її не передали в запиті.
+         */
+        post: operations["calculateInternalQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/lockers/{locationId}/open": {
         parameters: {
             query?: never;
@@ -1651,6 +1723,19 @@ export interface components {
             lon: number;
         };
         /**
+         * @description Запит shipment-service до pricing-service: той самий набір, що й у
+         *     калькуляторі, плюс контекст накладної.
+         */
+        InternalQuoteRequest: components["schemas"]["QuoteRequest"] & {
+            payer?: components["schemas"]["PayerType"];
+            /**
+             * Format: uuid
+             * @description Накладна, для якої рахуємо; порожньо — попередній розрахунок
+             */
+            shipmentId?: string;
+            zone?: components["schemas"]["DeliveryZone"];
+        };
+        /**
          * @description Усі типи доменних подій Kite з events/registry.json
          * @enum {string}
          */
@@ -2218,6 +2303,25 @@ export interface components {
              */
             currency: "UAH";
         };
+        /**
+         * @description Маршрут між двома точками за таблицею маршрутизації і розкладом рейсів
+         *     (6.2, `routing_rule`, `linehaul_schedule`) — те, що shipment-service
+         *     записує в `shipment_route`, а pricing-service бере як зону тарифу.
+         */
+        NetworkRoute: {
+            /** Format: uuid */
+            destinationLocationId: string;
+            /** Format: uuid */
+            originLocationId: string;
+            /**
+             * Format: date-time
+             * @description Плановий час прибуття в точку видачі за розкладом
+             */
+            plannedDeliveryAt?: string | null;
+            /** @description Від точки прийому до точки видачі включно, у порядку проходження */
+            stops: components["schemas"]["RouteStop"][];
+            zone: components["schemas"]["DeliveryZone"];
+        };
         /** @enum {string} */
         NotificationChannel: "PUSH" | "EMAIL" | "SMS";
         /** @enum {string} */
@@ -2647,6 +2751,11 @@ export interface components {
             type: "kite.payment.succeeded.v1";
         };
         /**
+         * @description Дозвіл (3.2): <ресурс>:<дія>[:<чиє>]. Keycloak видає лише роль, а які дозволи вона дає — мапа з auth/permissions.json.
+         * @enum {string}
+         */
+        Permission: "shipment:create:own" | "shipment:create:org" | "shipment:create:on-behalf" | "shipment:read:own" | "shipment:read:org" | "shipment:read:location" | "shipment:read:limited" | "shipment:read:number" | "shipment:read:all" | "delivery:manage:own" | "delivery:manage:org" | "delivery:manage:on-behalf" | "delivery:manage:all" | "scan:branch" | "scan:hub" | "scan:device" | "trip:load" | "trip:manage" | "discrepancy:manage" | "claim:create:own" | "claim:create:org" | "claim:create:on-behalf" | "claim:mark-damage" | "claim:review" | "payment:create:own" | "payment:accept-cash" | "ticket:create:own" | "ticket:handle" | "pii:read" | "dispatch:read" | "incident:manage" | "tariff:write" | "network:write" | "user:manage" | "audit:read" | "org:manage" | "org:finance" | "api-key:manage" | "pricing:quote" | "network:route";
+        /**
          * @description Телефон у E.164
          * @example +380501234567
          */
@@ -2696,6 +2805,52 @@ export interface components {
             reason?: string;
             valid: boolean;
         };
+        /**
+         * @description Причина відмови провайдера — для *_FAILED
+         * @enum {string}
+         */
+        ProviderFailureCode: "DECLINED" | "INSUFFICIENT_FUNDS" | "THREE_DS_FAILED" | "TIMEOUT";
+        /**
+         * @description Тіло вебхука mock-pay → payment-service (10.3). Необов'язкові поля
+         *     відсутні, а не null.
+         */
+        ProviderPaymentEvent: {
+            amount: components["schemas"]["Money"];
+            /** @example 4242 •••• •••• 4242 */
+            cardMask?: string;
+            /**
+             * Format: uuid
+             * @description Ідентифікатор події провайдера — ключ ідемпотентності
+             */
+            eventId: string;
+            failureCode?: components["schemas"]["ProviderFailureCode"];
+            /** @description Людський опис відмови — для *_FAILED */
+            failureReason?: string;
+            /** Format: date-time */
+            occurredAt: string;
+            /**
+             * Format: uuid
+             * @description Платіж payment-service, переданий провайдеру під час створення
+             */
+            paymentId: string;
+            /**
+             * @description Ідентифікатор операції в провайдера
+             * @example mp_7f3c2a91
+             */
+            providerReference: string;
+            /**
+             * Format: uuid
+             * @description Повернення коштів — для REFUND_*
+             */
+            refundId?: string;
+            type: components["schemas"]["ProviderPaymentEventType"];
+        };
+        /**
+         * @description Що сталося в платіжного провайдера. Таймаут 3-D Secure приходить як
+         *     PAYMENT_FAILED з `failureCode: TIMEOUT`.
+         * @enum {string}
+         */
+        ProviderPaymentEventType: "PAYMENT_SUCCEEDED" | "PAYMENT_FAILED" | "REFUND_SUCCEEDED" | "REFUND_FAILED";
         /** @description Публічний статус без персональних даних */
         PublicTracking: {
             destinationCity?: string;
@@ -2736,6 +2891,13 @@ export interface components {
              * @description Розрахунок кешується на 15 хв (6.2, `quote`)
              */
             expiresAt: string;
+            /**
+             * Format: uuid
+             * @description Збережений розрахунок (6.2, `quote`). Є лише у відповіді
+             *     внутрішнього `/internal/v1/pricing/quotes` — накладна посилається
+             *     на нього, щоб ціна не змінилась між створенням і оплатою.
+             */
+            id?: string;
             lines: components["schemas"]["QuoteLine"][];
             total: components["schemas"]["Money"];
             zone: components["schemas"]["DeliveryZone"];
@@ -3961,6 +4123,7 @@ export type FavoriteLocationPatch = components['schemas']['FavoriteLocationPatch
 export type FavoriteLocationRequest = components['schemas']['FavoriteLocationRequest'];
 export type FieldError = components['schemas']['FieldError'];
 export type GeoPoint = components['schemas']['GeoPoint'];
+export type InternalQuoteRequest = components['schemas']['InternalQuoteRequest'];
 export type KiteEventType = components['schemas']['KiteEventType'];
 export type KiteTopic = components['schemas']['KiteTopic'];
 export type Locale = components['schemas']['Locale'];
@@ -3986,6 +4149,7 @@ export type LogisticsTripDepartedEvent = components['schemas']['LogisticsTripDep
 export type LogisticsUnitClosedData = components['schemas']['LogisticsUnitClosedData'];
 export type LogisticsUnitClosedEvent = components['schemas']['LogisticsUnitClosedEvent'];
 export type Money = components['schemas']['Money'];
+export type NetworkRoute = components['schemas']['NetworkRoute'];
 export type NotificationChannel = components['schemas']['NotificationChannel'];
 export type NotificationEventType = components['schemas']['NotificationEventType'];
 export type NotificationPreferences = components['schemas']['NotificationPreferences'];
@@ -4013,6 +4177,7 @@ export type PaymentStatus = components['schemas']['PaymentStatus'];
 export type PaymentSubject = components['schemas']['PaymentSubject'];
 export type PaymentSucceededData = components['schemas']['PaymentSucceededData'];
 export type PaymentSucceededEvent = components['schemas']['PaymentSucceededEvent'];
+export type Permission = components['schemas']['Permission'];
 export type Phone = components['schemas']['Phone'];
 export type PhoneHash = components['schemas']['PhoneHash'];
 export type PhoneRequest = components['schemas']['PhoneRequest'];
@@ -4020,6 +4185,9 @@ export type PhoneVerifyRequest = components['schemas']['PhoneVerifyRequest'];
 export type Problem = components['schemas']['Problem'];
 export type PromoCodeValidateRequest = components['schemas']['PromoCodeValidateRequest'];
 export type PromoCodeValidation = components['schemas']['PromoCodeValidation'];
+export type ProviderFailureCode = components['schemas']['ProviderFailureCode'];
+export type ProviderPaymentEvent = components['schemas']['ProviderPaymentEvent'];
+export type ProviderPaymentEventType = components['schemas']['ProviderPaymentEventType'];
 export type PublicTracking = components['schemas']['PublicTracking'];
 export type PushSubscription = components['schemas']['PushSubscription'];
 export type PushSubscriptionRequest = components['schemas']['PushSubscriptionRequest'];
@@ -4261,6 +4429,92 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    resolveRoute: {
+        parameters: {
+            query: {
+                /** @description Від якого моменту планувати; типово — зараз */
+                departAt?: string;
+                /** @description Точка, де його видадуть */
+                destinationLocationId: string;
+                /** @description Точка, де відправлення приймуть */
+                originLocationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Маршрут */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkRoute"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
+        };
+    };
+    receiveProviderEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderPaymentEvent"];
+            };
+        };
+        responses: {
+            /** @description Подію прийнято (або вже була прийнята раніше) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    calculateInternalQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InternalQuoteRequest"];
+            };
+        };
+        responses: {
+            /** @description Розрахунок, збережений на 15 хв */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Quote"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["UnprocessableEntity"];
         };
     };
     openLockerCell: {
@@ -5619,6 +5873,9 @@ export const paymentSubjectValues: ReadonlyArray<FlattenedDeepRequired<component
 export const paymentSucceededEventDatacontenttypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PaymentSucceededEvent"]["datacontenttype"]> = ["application/json"];
 export const paymentSucceededEventSpecversionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PaymentSucceededEvent"]["specversion"]> = ["1.0"];
 export const paymentSucceededEventTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PaymentSucceededEvent"]["type"]> = ["kite.payment.succeeded.v1"];
+export const permissionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Permission"]> = ["shipment:create:own", "shipment:create:org", "shipment:create:on-behalf", "shipment:read:own", "shipment:read:org", "shipment:read:location", "shipment:read:limited", "shipment:read:number", "shipment:read:all", "delivery:manage:own", "delivery:manage:org", "delivery:manage:on-behalf", "delivery:manage:all", "scan:branch", "scan:hub", "scan:device", "trip:load", "trip:manage", "discrepancy:manage", "claim:create:own", "claim:create:org", "claim:create:on-behalf", "claim:mark-damage", "claim:review", "payment:create:own", "payment:accept-cash", "ticket:create:own", "ticket:handle", "pii:read", "dispatch:read", "incident:manage", "tariff:write", "network:write", "user:manage", "audit:read", "org:manage", "org:finance", "api-key:manage", "pricing:quote", "network:route"];
+export const providerFailureCodeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ProviderFailureCode"]> = ["DECLINED", "INSUFFICIENT_FUNDS", "THREE_DS_FAILED", "TIMEOUT"];
+export const providerPaymentEventTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ProviderPaymentEventType"]> = ["PAYMENT_SUCCEEDED", "PAYMENT_FAILED", "REFUND_SUCCEEDED", "REFUND_FAILED"];
 export const pushSubscriptionKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PushSubscription"]["kind"]> = ["WEB_PUSH", "FCM"];
 export const pushSubscriptionRequestKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PushSubscriptionRequest"]["kind"]> = ["WEB_PUSH", "FCM"];
 export const roleValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Role"]> = ["CLIENT", "BIZ_OWNER", "BIZ_MEMBER", "OPERATOR", "SORTER", "SHIFT_MANAGER", "DRIVER", "DISPATCHER", "SUPPORT", "ADMIN", "SYSTEM"];

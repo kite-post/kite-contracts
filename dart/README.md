@@ -13,6 +13,10 @@ PATCH всюди має семантику злиття (RFC 7396): поля, я
 клієнтський кабінет (9.3) і прийом сканів (9.5). Kite Business і решта
 Kite Ops дописуються разом із відповідними сервісами.
 
+Шляхи `/internal/v1/_**` — синхронні виклики між сервісами (5.4, п. 7):
+повз шлюз, з токеном сервісного акаунта (роль `SYSTEM`) і дозволом із
+`x-kite-permission`; вебхук mock-pay підписаний `Kite-Signature`.
+
 
 Цей документ зведений: до REST-контракту додані схеми подій і типізовані конверти CloudEvents. Правити треба openapi/openapi.yaml та events/_**, а не його.
 
@@ -85,6 +89,9 @@ Class | Method | HTTP request | Description
 *CareApi* | [**createTicket**](doc//CareApi.md#createticket) | **POST** /tickets | Створити тікет підтримки
 *CareApi* | [**listClaims**](doc//CareApi.md#listclaims) | **GET** /claims | Мої претензії
 *CareApi* | [**listTickets**](doc//CareApi.md#listtickets) | **GET** /tickets | Мої тікети
+*InternalNetworkApi* | [**resolveRoute**](doc//InternalNetworkApi.md#resolveroute) | **GET** /internal/v1/network/routes | Маршрут і зона між двома точками
+*InternalPaymentsApi* | [**receiveProviderEvent**](doc//InternalPaymentsApi.md#receiveproviderevent) | **POST** /internal/v1/payments/provider-events | Вебхук платіжного провайдера (mock-pay)
+*InternalPricingApi* | [**calculateInternalQuote**](doc//InternalPricingApi.md#calculateinternalquote) | **POST** /internal/v1/pricing/quotes | Розрахунок ціни для відправлення
 *LockersApi* | [**createStorageBooking**](doc//LockersApi.md#createstoragebooking) | **POST** /storage-bookings | Забронювати камеру зберігання в Kite Box
 *LockersApi* | [**listStorageBookings**](doc//LockersApi.md#liststoragebookings) | **GET** /storage-bookings | Мої бронювання
 *LockersApi* | [**openLockerCell**](doc//LockersApi.md#openlockercell) | **POST** /lockers/{locationId}/open | Відкрити комірку (отримання або відправка)
@@ -188,6 +195,7 @@ Class | Method | HTTP request | Description
  - [FavoriteLocationRequest](doc//FavoriteLocationRequest.md)
  - [FieldError](doc//FieldError.md)
  - [GeoPoint](doc//GeoPoint.md)
+ - [InternalQuoteRequest](doc//InternalQuoteRequest.md)
  - [KiteEventType](doc//KiteEventType.md)
  - [KiteTopic](doc//KiteTopic.md)
  - [Locale](doc//Locale.md)
@@ -213,6 +221,7 @@ Class | Method | HTTP request | Description
  - [LogisticsUnitClosedData](doc//LogisticsUnitClosedData.md)
  - [LogisticsUnitClosedEvent](doc//LogisticsUnitClosedEvent.md)
  - [Money](doc//Money.md)
+ - [NetworkRoute](doc//NetworkRoute.md)
  - [NotificationChannel](doc//NotificationChannel.md)
  - [NotificationEventType](doc//NotificationEventType.md)
  - [NotificationPreferences](doc//NotificationPreferences.md)
@@ -241,11 +250,15 @@ Class | Method | HTTP request | Description
  - [PaymentSubject](doc//PaymentSubject.md)
  - [PaymentSucceededData](doc//PaymentSucceededData.md)
  - [PaymentSucceededEvent](doc//PaymentSucceededEvent.md)
+ - [Permission](doc//Permission.md)
  - [PhoneRequest](doc//PhoneRequest.md)
  - [PhoneVerifyRequest](doc//PhoneVerifyRequest.md)
  - [Problem](doc//Problem.md)
  - [PromoCodeValidateRequest](doc//PromoCodeValidateRequest.md)
  - [PromoCodeValidation](doc//PromoCodeValidation.md)
+ - [ProviderFailureCode](doc//ProviderFailureCode.md)
+ - [ProviderPaymentEvent](doc//ProviderPaymentEvent.md)
+ - [ProviderPaymentEventType](doc//ProviderPaymentEventType.md)
  - [PublicTracking](doc//PublicTracking.md)
  - [PushSubscription](doc//PushSubscription.md)
  - [PushSubscriptionRequest](doc//PushSubscriptionRequest.md)
@@ -324,6 +337,12 @@ Authentication schemes defined for the API:
 
 - **Type**: API key
 - **API key parameter name**: X-Api-Key
+- **Location**: HTTP header
+
+### providerSignature
+
+- **Type**: API key
+- **API key parameter name**: Kite-Signature
 - **Location**: HTTP header
 
 

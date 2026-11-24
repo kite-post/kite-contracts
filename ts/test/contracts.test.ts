@@ -6,6 +6,9 @@ import { test } from "node:test";
 
 import {
   createKiteClient,
+  hasPermission,
+  kiteRolePermissions,
+  permissionsOf,
   kiteEventRegistry,
   kiteEventTypes,
   kiteTopics,
@@ -51,4 +54,16 @@ test("клієнт API створюється з базовою адресою",
   const api = createKiteClient({ baseUrl: "http://localhost/api/v1" });
   assert.equal(typeof api.GET, "function");
   assert.equal(typeof api.POST, "function");
+});
+
+test("дозволи беруться з ролей токена (3.2)", () => {
+  // Так приходять ролі з realm_access.roles: поруч зі справжньою — службові ролі Keycloak.
+  const roles = ["default-roles-kite", "offline_access", "CLIENT"];
+
+  assert.ok(hasPermission(roles, "shipment:create:own"));
+  assert.ok(!hasPermission(roles, "shipment:read:all"));
+  assert.ok(!hasPermission(["toString", "__proto__"], "shipment:read:own"), "імена з прототипу — не ролі");
+  assert.ok(!hasPermission(["ADMIN"], "shipment:create:own"), "ADMIN не створює відправлень");
+  assert.ok(permissionsOf(["SORTER", "SHIFT_MANAGER"]).has("discrepancy:manage"));
+  assert.equal(Object.keys(kiteRolePermissions).length, 11);
 });

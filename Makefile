@@ -26,12 +26,13 @@ GEN := docker run --rm -u $(shell id -u):$(shell id -g) -v $(CURDIR):/local -w /
 
 # Усе, що генерується і при цьому лежить у git: саме це перевіряє `make check`.
 GENERATED := kite dart/lib dart/pubspec.yaml dart/README.md events/api.schema.json \
-             ts/src/schema.gen.ts ts/src/registry.gen.ts \
-             python/src/kite_contracts/models.py python/src/kite_contracts/registry.py
+             ts/src/schema.gen.ts ts/src/registry.gen.ts ts/src/permissions.gen.ts \
+             python/src/kite_contracts/models.py python/src/kite_contracts/registry.py \
+             python/src/kite_contracts/permissions.py
 
 .DEFAULT_GOAL := help
 .PHONY: help bundle generate generate-go generate-dart generate-ts generate-python \
-        generate-registry java ts lint check compat test test-java test-go test-dart \
+        generate-registry generate-permissions java ts lint check compat test test-java test-go test-dart \
         test-ts test-python verify install-local version release clean
 
 help: ## Показати цілі
@@ -46,13 +47,16 @@ bundle: build/openapi.json ## Звести контракт і схеми под
 	python3 tools/bundle.py build/openapi.json
 	python3 tools/validate.py
 
-generate: bundle generate-registry generate-go generate-dart generate-ts generate-python ## Перегенерувати Go, Dart, TS, Python і реєстр
+generate: bundle generate-registry generate-permissions generate-go generate-dart generate-ts generate-python ## Перегенерувати Go, Dart, TS, Python, реєстр і дозволи
 	@echo "Java-класи генеруються під час make java, JS для npm — під час make ts: у git їх немає."
 
 generate-registry: ## Реєстр подій як код для Go, Dart, TS і Python
 	python3 tools/gen-registry.py
 
-generate-go: bundle ## Go: моделі, клієнт і серверні інтерфейси
+generate-permissions: ## Мапа «роль → дозволи» для Go, Dart, TS і Python (3.2)
+	python3 tools/gen-permissions.py
+
+generate-go: bundle generate-permissions ## Go: моделі, клієнт і серверні інтерфейси
 	$(GO) sh -c 'GOFLAGS=-mod=mod go run $(OAPI_CODEGEN) -config tools/oapi-codegen.yaml $(BUNDLE) && go mod tidy'
 
 generate-dart: bundle ## Dart: моделі й клієнт для kite-mobile
@@ -62,7 +66,7 @@ generate-dart: bundle ## Dart: моделі й клієнт для kite-mobile
 generate-ts: bundle ## TypeScript: типи API і подій для Vue-застосунків
 	$(NODE) sh -c 'npm ci --no-audit --no-fund --loglevel=error && npm run -s generate'
 
-generate-python: bundle generate-registry ## Python: pydantic-моделі для ai-service і симулятора
+generate-python: bundle generate-registry generate-permissions ## Python: pydantic-моделі для ai-service і симулятора
 	$(PY) sh tools/gen-python.sh
 
 ts: generate-ts ## Зібрати npm-пакет @kite-post/contracts у ts/dist

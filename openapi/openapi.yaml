@@ -16,6 +16,10 @@ info:
     У цій версії описано ядро: публічна частина й автентифікація (9.2),
     клієнтський кабінет (9.3) і прийом сканів (9.5). Kite Business і решта
     Kite Ops дописуються разом із відповідними сервісами.
+
+    Шляхи `/internal/v1/**` — синхронні виклики між сервісами (5.4, п. 7):
+    повз шлюз, з токеном сервісного акаунта (роль `SYSTEM`) і дозволом із
+    `x-kite-permission`; вебхук mock-pay підписаний `Kite-Signature`.
   contact:
     name: Kite
     url: https://github.com/kite-post
@@ -44,6 +48,12 @@ tags:
     description: Претензії і підтримка
   - name: scans
     description: Скани персоналу
+  - name: internal-pricing
+    description: "Внутрішнє: pricing-service, сервіс → сервіс без шлюзу (5.4, п. 7)"
+  - name: internal-network
+    description: "Внутрішнє: network-service, сервіс → сервіс без шлюзу (5.4, п. 7)"
+  - name: internal-payments
+    description: "Внутрішнє: вебхук mock-pay → payment-service (10.3)"
 
 security:
   - bearerAuth: []
@@ -1114,6 +1124,126 @@ paths:
                 $ref: '#/components/schemas/SortHint'
         '404': { $ref: '#/components/responses/NotFound' }
 
+  # ── Внутрішні виклики (5.4, п. 7) ────────────────────────────────────────
+  # Сервіс → сервіс напряму, повз шлюз: шлюз маршрутизує лише /api/v1 (9.1),
+  # тож /internal/v1 назовні не виходить. Сервіс слухає ці шляхи без префікса
+  # /api/v1. Виклик несе токен сервісного акаунта (client_credentials, роль
+  # SYSTEM); потрібний дозвіл — у x-kite-permission. Тайм-аут 2 с і circuit
+  # breaker — на боці того, хто викликає.
+
+  /internal/v1/pricing/quotes:
+    post:
+      tags: [internal-pricing]
+      operationId: calculateInternalQuote
+      summary: Розрахунок ціни для відправлення
+      description: |
+        Викликає shipment-service під час створення й підтвердження накладної
+        (сага 5.4, п. 4). Та сама математика, що й у публічному калькуляторі
+        `/public/quotes`, але розрахунок зберігається (6.2, `quote`) і має `id`,
+        на який накладна посилається. Зону pricing-service бере з
+        network-service, якщо її не передали в запиті.
+      x-kite-permission: pricing:quote
+      servers:
+        - url: http://pricing-service:8080
+          description: Напряму в мережі стенда, без шлюзу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InternalQuoteRequest'
+      responses:
+        '200':
+          description: Розрахунок, збережений на 15 хв
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /internal/v1/network/routes:
+    get:
+      tags: [internal-network]
+      operationId: resolveRoute
+      summary: Маршрут і зона між двома точками
+      description: |
+        Викликають shipment-service (запланований маршрут накладної, 6.2
+        `shipment_route`) і pricing-service (зона для тарифу). Маршрут
+        будується за таблицею маршрутизації і розкладом рейсів; відповідь
+        можна кешувати до зміни мережі.
+      x-kite-permission: network:route
+      servers:
+        - url: http://network-service:8080
+          description: Напряму в мережі стенда, без шлюзу
+      parameters:
+        - name: originLocationId
+          in: query
+          required: true
+          description: Точка, де відправлення приймуть
+          schema:
+            type: string
+            format: uuid
+        - name: destinationLocationId
+          in: query
+          required: true
+          description: Точка, де його видадуть
+          schema:
+            type: string
+            format: uuid
+        - name: departAt
+          in: query
+          required: false
+          description: Від якого моменту планувати; типово — зараз
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Маршрут
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkRoute'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /internal/v1/payments/provider-events:
+    post:
+      tags: [internal-payments]
+      operationId: receiveProviderEvent
+      summary: Вебхук платіжного провайдера (mock-pay)
+      description: |
+        mock-pay повідомляє payment-service про результат платежу чи
+        повернення (10.3). Токена Keycloak у провайдера немає, тож запит
+        підписаний: `Kite-Signature: t=<час>,v1=<HMAC-SHA256(secret, t.body)>`,
+        як вебхуки бізнесу (9.1); payment-service відкидає підпис, старший за
+        5 хв. Ідемпотентність — за `eventId`: повтор отримує 204 без повторної
+        обробки. Будь-яка відповідь, крім 2xx, — сигнал mock-pay повторити.
+      security:
+        - providerSignature: []
+      servers:
+        - url: http://payment-service:8080
+          description: Напряму в мережі стенда, без шлюзу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderPaymentEvent'
+      responses:
+        '204':
+          description: Подію прийнято (або вже була прийнята раніше)
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1126,6 +1256,14 @@ components:
       in: header
       name: X-Api-Key
       description: Ключ організації для бізнес-інтеграцій
+    providerSignature:
+      type: apiKey
+      in: header
+      name: Kite-Signature
+      description: |
+        Підпис вебхука платіжного провайдера:
+        `t=<unix-час>,v1=<hex HMAC-SHA256(secret, "<t>.<тіло>")>`. Секрет
+        спільний для mock-pay і payment-service і задається на стенді.
 
   parameters:
     IdPath:
@@ -2346,6 +2484,13 @@ components:
       type: object
       required: [total, lines, zone, chargeableWeightGrams, expiresAt]
       properties:
+        id:
+          type: string
+          format: uuid
+          description: |
+            Збережений розрахунок (6.2, `quote`). Є лише у відповіді
+            внутрішнього `/internal/v1/pricing/quotes` — накладна посилається
+            на нього, щоб ціна не змінилась між створенням і оплатою.
         total:
           $ref: '#/components/schemas/Money'
         lines:
@@ -2362,6 +2507,98 @@ components:
           type: string
           format: date-time
           description: Розрахунок кешується на 15 хв (6.2, `quote`)
+
+    InternalQuoteRequest:
+      description: |
+        Запит shipment-service до pricing-service: той самий набір, що й у
+        калькуляторі, плюс контекст накладної.
+      allOf:
+        - $ref: '#/components/schemas/QuoteRequest'
+        - type: object
+          properties:
+            shipmentId:
+              type: string
+              format: uuid
+              description: Накладна, для якої рахуємо; порожньо — попередній розрахунок
+            payer:
+              $ref: '#/components/schemas/PayerType'
+            zone:
+              $ref: '#/components/schemas/DeliveryZone'
+    NetworkRoute:
+      type: object
+      description: |
+        Маршрут між двома точками за таблицею маршрутизації і розкладом рейсів
+        (6.2, `routing_rule`, `linehaul_schedule`) — те, що shipment-service
+        записує в `shipment_route`, а pricing-service бере як зону тарифу.
+      required: [originLocationId, destinationLocationId, zone, stops]
+      properties:
+        originLocationId:
+          type: string
+          format: uuid
+        destinationLocationId:
+          type: string
+          format: uuid
+        zone:
+          $ref: '#/components/schemas/DeliveryZone'
+        stops:
+          type: array
+          description: Від точки прийому до точки видачі включно, у порядку проходження
+          minItems: 2
+          items:
+            $ref: '#/components/schemas/RouteStop'
+        plannedDeliveryAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Плановий час прибуття в точку видачі за розкладом
+    ProviderPaymentEventType:
+      type: string
+      description: |
+        Що сталося в платіжного провайдера. Таймаут 3-D Secure приходить як
+        PAYMENT_FAILED з `failureCode: TIMEOUT`.
+      enum: [PAYMENT_SUCCEEDED, PAYMENT_FAILED, REFUND_SUCCEEDED, REFUND_FAILED]
+    ProviderFailureCode:
+      type: string
+      description: Причина відмови провайдера — для *_FAILED
+      enum: [DECLINED, INSUFFICIENT_FUNDS, THREE_DS_FAILED, TIMEOUT]
+    ProviderPaymentEvent:
+      type: object
+      description: |
+        Тіло вебхука mock-pay → payment-service (10.3). Необов'язкові поля
+        відсутні, а не null.
+      required: [eventId, type, paymentId, providerReference, amount, occurredAt]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Ідентифікатор події провайдера — ключ ідемпотентності
+        type:
+          $ref: '#/components/schemas/ProviderPaymentEventType'
+        paymentId:
+          type: string
+          format: uuid
+          description: Платіж payment-service, переданий провайдеру під час створення
+        refundId:
+          type: string
+          format: uuid
+          description: Повернення коштів — для REFUND_*
+        providerReference:
+          type: string
+          description: Ідентифікатор операції в провайдера
+          example: mp_7f3c2a91
+        amount:
+          $ref: '#/components/schemas/Money'
+        cardMask:
+          type: string
+          example: '4242 •••• •••• 4242'
+        failureCode:
+          $ref: '#/components/schemas/ProviderFailureCode'
+        failureReason:
+          type: string
+          description: Людський опис відмови — для *_FAILED
+        occurredAt:
+          type: string
+          format: date-time
 
     OpenCellRequest:
       type: object

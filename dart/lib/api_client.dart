@@ -292,6 +292,8 @@ class ApiClient {
           return FieldError.fromJson(value);
         case 'GeoPoint':
           return GeoPoint.fromJson(value);
+        case 'InternalQuoteRequest':
+          return InternalQuoteRequest.fromJson(value);
         case 'KiteEventType':
           return KiteEventTypeTypeTransformer().decode(value);
         case 'KiteTopic':
@@ -342,6 +344,8 @@ class ApiClient {
           return LogisticsUnitClosedEvent.fromJson(value);
         case 'Money':
           return Money.fromJson(value);
+        case 'NetworkRoute':
+          return NetworkRoute.fromJson(value);
         case 'NotificationChannel':
           return NotificationChannelTypeTransformer().decode(value);
         case 'NotificationEventType':
@@ -398,6 +402,8 @@ class ApiClient {
           return PaymentSucceededData.fromJson(value);
         case 'PaymentSucceededEvent':
           return PaymentSucceededEvent.fromJson(value);
+        case 'Permission':
+          return PermissionTypeTransformer().decode(value);
         case 'PhoneRequest':
           return PhoneRequest.fromJson(value);
         case 'PhoneVerifyRequest':
@@ -408,6 +414,12 @@ class ApiClient {
           return PromoCodeValidateRequest.fromJson(value);
         case 'PromoCodeValidation':
           return PromoCodeValidation.fromJson(value);
+        case 'ProviderFailureCode':
+          return ProviderFailureCodeTypeTransformer().decode(value);
+        case 'ProviderPaymentEvent':
+          return ProviderPaymentEvent.fromJson(value);
+        case 'ProviderPaymentEventType':
+          return ProviderPaymentEventTypeTypeTransformer().decode(value);
         case 'PublicTracking':
           return PublicTracking.fromJson(value);
         case 'PushSubscription':

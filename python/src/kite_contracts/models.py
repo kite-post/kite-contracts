@@ -1704,6 +1704,173 @@ class PaymentSucceededEvent(BaseModel):
     """
 
 
+class Permission(StrEnum):
+    """
+    Дозвіл (3.2): <ресурс>:<дія>[:<чиє>]. Keycloak видає лише роль, а які дозволи вона дає — мапа з auth/permissions.json.
+    """
+
+    SHIPMENT_CREATE_OWN = "shipment:create:own"
+    """
+    Створити своє відправлення і вести його до прийому: чернетка, підтвердження, скасування
+    """
+    SHIPMENT_CREATE_ORG = "shipment:create:org"
+    """
+    Те саме від імені своєї організації
+    """
+    SHIPMENT_CREATE_ON_BEHALF = "shipment:create:on-behalf"
+    """
+    Те саме за клієнта на касі відділення
+    """
+    SHIPMENT_READ_OWN = "shipment:read:own"
+    """
+    Повні дані відправлень, де користувач відправник чи отримувач
+    """
+    SHIPMENT_READ_ORG = "shipment:read:org"
+    """
+    Повні дані відправлень своєї організації
+    """
+    SHIPMENT_READ_LOCATION = "shipment:read:location"
+    """
+    Повні дані відправлень у своєму відділенні
+    """
+    SHIPMENT_READ_LIMITED = "shipment:read:limited"
+    """
+    Лише номер, вага й маршрут — без персональних даних
+    """
+    SHIPMENT_READ_NUMBER = "shipment:read:number"
+    """
+    Лише номер відправлення (маніфест рейсу)
+    """
+    SHIPMENT_READ_ALL = "shipment:read:all"
+    """
+    Повні дані будь-якого відправлення
+    """
+    DELIVERY_MANAGE_OWN = "delivery:manage:own"
+    """
+    Керувати доставкою свого відправлення як отримувач: переадресація, довірена особа, відпустка, продовження
+    """
+    DELIVERY_MANAGE_ORG = "delivery:manage:org"
+    """
+    Керувати доставкою відправлень своєї організації як відправник
+    """
+    DELIVERY_MANAGE_ON_BEHALF = "delivery:manage:on-behalf"
+    """
+    Керувати доставкою за зверненням клієнта у відділенні
+    """
+    DELIVERY_MANAGE_ALL = "delivery:manage:all"
+    """
+    Керувати доставкою будь-якого відправлення
+    """
+    SCAN_BRANCH = "scan:branch"
+    """
+    Сканувати прийом і видачу у відділенні
+    """
+    SCAN_HUB = "scan:hub"
+    """
+    Сканувати в хабі, формувати й закривати мішки
+    """
+    SCAN_DEVICE = "scan:device"
+    """
+    Слати скани від імені пристрою: стаціонарний сканер, Kite Box
+    """
+    TRIP_LOAD = "trip:load"
+    """
+    Сканувати завантаження і розвантаження рейсу
+    """
+    TRIP_MANAGE = "trip:manage"
+    """
+    Створювати рейси, вести маніфести і звірку
+    """
+    DISCREPANCY_MANAGE = "discrepancy:manage"
+    """
+    Оформлювати акти розбіжностей
+    """
+    CLAIM_CREATE_OWN = "claim:create:own"
+    """
+    Подати претензію щодо свого відправлення
+    """
+    CLAIM_CREATE_ORG = "claim:create:org"
+    """
+    Подати претензію від імені своєї організації
+    """
+    CLAIM_CREATE_ON_BEHALF = "claim:create:on-behalf"
+    """
+    Подати претензію за клієнта у відділенні
+    """
+    CLAIM_MARK_DAMAGE = "claim:mark-damage"
+    """
+    Позначити пошкодження посилки під час обробки
+    """
+    CLAIM_REVIEW = "claim:review"
+    """
+    Розглядати претензії і приймати рішення
+    """
+    PAYMENT_CREATE_OWN = "payment:create:own"
+    """
+    Оплатити своє відправлення чи послугу
+    """
+    PAYMENT_ACCEPT_CASH = "payment:accept-cash"
+    """
+    Прийняти оплату на касі відділення (FR-902)
+    """
+    TICKET_CREATE_OWN = "ticket:create:own"
+    """
+    Створити тікет підтримки і писати в ньому
+    """
+    TICKET_HANDLE = "ticket:handle"
+    """
+    Відповідати на тікети підтримки
+    """
+    PII_READ = "pii:read"
+    """
+    Шукати відправлення за телефоном і ПІБ, бачити персональні дані; кожен доступ логується (FR-1107)
+    """
+    DISPATCH_READ = "dispatch:read"
+    """
+    Диспетчерська: карта мережі, завантаження хабів, посилки без сканів
+    """
+    INCIDENT_MANAGE = "incident:manage"
+    """
+    Створювати і закривати інциденти мережі
+    """
+    TARIFF_WRITE = "tariff:write"
+    """
+    Змінювати тарифи, ціни послуг і промокоди
+    """
+    NETWORK_WRITE = "network:write"
+    """
+    Змінювати мережу: точки, хаби, лінії, маршрутизацію, розклад рейсів
+    """
+    USER_MANAGE = "user:manage"
+    """
+    Керувати користувачами персоналу, ролями і прив'язками до точок
+    """
+    AUDIT_READ = "audit:read"
+    """
+    Читати журнал дій персоналу і доступів до персональних даних
+    """
+    ORG_MANAGE = "org:manage"
+    """
+    Керувати організацією: реквізити, учасники
+    """
+    ORG_FINANCE = "org:finance"
+    """
+    Фінанси організації: рахунки, акти, виплати післяплати
+    """
+    API_KEY_MANAGE = "api-key:manage"
+    """
+    Керувати ключами API і вебхуками організації
+    """
+    PRICING_QUOTE = "pricing:quote"
+    """
+    Внутрішній виклик: розрахунок ціни в pricing-service (5.4, п. 7)
+    """
+    NETWORK_ROUTE = "network:route"
+    """
+    Внутрішній виклик: маршрут і зона між точками в network-service (5.4, п. 7)
+    """
+
+
 class PhoneRequest(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
@@ -1766,6 +1933,30 @@ class PromoCodeValidation(BaseModel):
     valid: bool
     discount: Money | None = None
     reason: str | None = None
+
+
+class ProviderFailureCode(StrEnum):
+    """
+    Причина відмови провайдера — для *_FAILED
+    """
+
+    DECLINED = "DECLINED"
+    INSUFFICIENT_FUNDS = "INSUFFICIENT_FUNDS"
+    THREE_DS_FAILED = "THREE_DS_FAILED"
+    TIMEOUT = "TIMEOUT"
+
+
+class ProviderPaymentEventType(StrEnum):
+    """
+    Що сталося в платіжного провайдера. Таймаут 3-D Secure приходить як
+    PAYMENT_FAILED з `failureCode: TIMEOUT`.
+
+    """
+
+    PAYMENT_SUCCEEDED = "PAYMENT_SUCCEEDED"
+    PAYMENT_FAILED = "PAYMENT_FAILED"
+    REFUND_SUCCEEDED = "REFUND_SUCCEEDED"
+    REFUND_FAILED = "REFUND_FAILED"
 
 
 class Kind2(StrEnum):
@@ -2889,10 +3080,60 @@ class PaymentFailedEvent(BaseModel):
     """
 
 
+class ProviderPaymentEvent(BaseModel):
+    """
+    Тіло вебхука mock-pay → payment-service (10.3). Необов'язкові поля
+    відсутні, а не null.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    event_id: Annotated[UUID, Field(alias="eventId")]
+    """
+    Ідентифікатор події провайдера — ключ ідемпотентності
+    """
+    type: ProviderPaymentEventType
+    payment_id: Annotated[UUID, Field(alias="paymentId")]
+    """
+    Платіж payment-service, переданий провайдеру під час створення
+    """
+    refund_id: Annotated[UUID | None, Field(alias="refundId")] = None
+    """
+    Повернення коштів — для REFUND_*
+    """
+    provider_reference: Annotated[
+        str, Field(alias="providerReference", examples=["mp_7f3c2a91"])
+    ]
+    """
+    Ідентифікатор операції в провайдера
+    """
+    amount: Money
+    card_mask: Annotated[
+        str | None, Field(alias="cardMask", examples=["4242 •••• •••• 4242"])
+    ] = None
+    failure_code: Annotated[ProviderFailureCode | None, Field(alias="failureCode")] = (
+        None
+    )
+    failure_reason: Annotated[str | None, Field(alias="failureReason")] = None
+    """
+    Людський опис відмови — для *_FAILED
+    """
+    occurred_at: Annotated[AwareDatetime, Field(alias="occurredAt")]
+
+
 class Quote(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+    id: UUID | None = None
+    """
+    Збережений розрахунок (6.2, `quote`). Є лише у відповіді
+    внутрішнього `/internal/v1/pricing/quotes` — накладна посилається
+    на нього, щоб ціна не змінилась між створенням і оплатою.
+
+    """
     total: Money
     lines: list[QuoteLine]
     zone: DeliveryZone
@@ -4103,6 +4344,24 @@ class FavoriteLocation(BaseModel):
     location: LocationRef
 
 
+class InternalQuoteRequest(QuoteRequest):
+    """
+    Запит shipment-service до pricing-service: той самий набір, що й у
+    калькуляторі, плюс контекст накладної.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    shipment_id: Annotated[UUID | None, Field(alias="shipmentId")] = None
+    """
+    Накладна, для якої рахуємо; порожньо — попередній розрахунок
+    """
+    payer: PayerType | None = None
+    zone: DeliveryZone | None = None
+
+
 class Location(LocationRef):
     model_config = ConfigDict(
         populate_by_name=True,
@@ -4131,6 +4390,32 @@ class LocationPage(BaseModel):
     )
     items: list[Location]
     next_cursor: Annotated[str | None, Field(alias="nextCursor")] = None
+
+
+class NetworkRoute(BaseModel):
+    """
+    Маршрут між двома точками за таблицею маршрутизації і розкладом рейсів
+    (6.2, `routing_rule`, `linehaul_schedule`) — те, що shipment-service
+    записує в `shipment_route`, а pricing-service бере як зону тарифу.
+
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    origin_location_id: Annotated[UUID, Field(alias="originLocationId")]
+    destination_location_id: Annotated[UUID, Field(alias="destinationLocationId")]
+    zone: DeliveryZone
+    stops: Annotated[list[RouteStop], Field(min_length=2)]
+    """
+    Від точки прийому до точки видачі включно, у порядку проходження
+    """
+    planned_delivery_at: Annotated[
+        AwareDatetime | None, Field(alias="plannedDeliveryAt")
+    ] = None
+    """
+    Плановий час прибуття в точку видачі за розкладом
+    """
 
 
 class PublicTracking(BaseModel):

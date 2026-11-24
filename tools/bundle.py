@@ -96,6 +96,11 @@ def jsonschema_to_oas(node: dict) -> dict:
     return out
 
 
+def permission_varname(name: str) -> str:
+    """shipment:create:on-behalf → SHIPMENT_CREATE_ON_BEHALF — ім'я константи в мовах."""
+    return re.sub(r"[^A-Za-z0-9]+", "_", name).upper()
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         fail("виклик: bundle.py <build/openapi.json>")
@@ -171,8 +176,25 @@ def main() -> None:
         "enum": sorted({e["topic"] for e in registry["events"]}),
     }
 
+    # Дозволи (3.2): перелік — з auth/permissions.json, щоб у кожній мові був
+    # типізований Permission, а мапа «роль → дозволи» посилалася на нього.
+    auth = json.loads((ROOT / "auth" / "permissions.json").read_text(encoding="utf-8"))
+    if "Permission" in bundled:
+        fail("ім'я Permission зайняте типом REST-контракту — його дає auth/permissions.json")
+    bundled["Permission"] = {
+        "type": "string",
+        "description": (
+            "Дозвіл (3.2): <ресурс>:<дія>[:<чиє>]. Keycloak видає лише роль, а які "
+            "дозволи вона дає — мапа з auth/permissions.json."
+        ),
+        "enum": [p["name"] for p in auth["permissions"]],
+        "x-enum-varnames": [permission_varname(p["name"]) for p in auth["permissions"]],
+        "x-enum-descriptions": [p["description"] for p in auth["permissions"]],
+    }
+
     spec["components"]["schemas"] = dict(sorted(bundled.items()))
     spec["x-kite-events"] = registry["events"]
+    spec["x-kite-role-permissions"] = auth["roles"]
     spec["info"]["description"] = spec["info"].get("description", "") + (
         "\n\nЦей документ зведений: до REST-контракту додані схеми подій і "
         "типізовані конверти CloudEvents. Правити треба openapi/openapi.yaml "

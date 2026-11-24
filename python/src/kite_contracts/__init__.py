@@ -1,7 +1,8 @@
-"""Контракти Kite для Python: pydantic-моделі REST і подій та реєстр подій.
+"""Контракти Kite для Python: pydantic-моделі REST і подій, реєстр подій і дозволи.
 
-Моделі — у kite_contracts.models, реєстр — у kite_contracts.registry. Обидва
-модулі згенеровані з kite-contracts; правити треба схеми, а не цей пакет.
+Моделі — у kite_contracts.models, реєстр — у kite_contracts.registry, мапа
+«роль → дозволи» — у kite_contracts.permissions. Усі три модулі згенеровані з
+kite-contracts; правити треба схеми, а не цей пакет.
 
     from kite_contracts import parse_event
     from kite_contracts.registry import EVENT_REGISTRY
@@ -16,9 +17,20 @@ import json
 
 from pydantic import BaseModel
 
+from kite_contracts.permissions import ROLE_PERMISSIONS, has_permission, permissions_of
 from kite_contracts.registry import EVENT_MODELS, EVENT_REGISTRY, TOPICS, EventMeta
 
-__all__ = ["EVENT_MODELS", "EVENT_REGISTRY", "TOPICS", "EventMeta", "UnknownEventTypeError", "parse_event"]
+__all__ = [
+    "EVENT_MODELS",
+    "EVENT_REGISTRY",
+    "ROLE_PERMISSIONS",
+    "TOPICS",
+    "EventMeta",
+    "UnknownEventTypeError",
+    "has_permission",
+    "parse_event",
+    "permissions_of",
+]
 
 
 class UnknownEventTypeError(ValueError):

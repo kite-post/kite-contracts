@@ -1906,6 +1906,11 @@
         "expiresAt"
       ],
       "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Збережений розрахунок (6.2, `quote`). Є лише у відповіді\nвнутрішнього `/internal/v1/pricing/quotes` — накладна посилається\nна нього, щоб ціна не змінилась між створенням і оплатою.\n"
+        },
         "total": {
           "$ref": "#/$defs/Money"
         },
@@ -1927,6 +1932,148 @@
           "type": "string",
           "format": "date-time",
           "description": "Розрахунок кешується на 15 хв (6.2, `quote`)"
+        }
+      }
+    },
+    "InternalQuoteRequest": {
+      "description": "Запит shipment-service до pricing-service: той самий набір, що й у\nкалькуляторі, плюс контекст накладної.\n",
+      "allOf": [
+        {
+          "$ref": "#/$defs/QuoteRequest"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "shipmentId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Накладна, для якої рахуємо; порожньо — попередній розрахунок"
+            },
+            "payer": {
+              "$ref": "#/$defs/PayerType"
+            },
+            "zone": {
+              "$ref": "#/$defs/DeliveryZone"
+            }
+          }
+        }
+      ]
+    },
+    "NetworkRoute": {
+      "type": "object",
+      "description": "Маршрут між двома точками за таблицею маршрутизації і розкладом рейсів\n(6.2, `routing_rule`, `linehaul_schedule`) — те, що shipment-service\nзаписує в `shipment_route`, а pricing-service бере як зону тарифу.\n",
+      "required": [
+        "originLocationId",
+        "destinationLocationId",
+        "zone",
+        "stops"
+      ],
+      "properties": {
+        "originLocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "destinationLocationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "zone": {
+          "$ref": "#/$defs/DeliveryZone"
+        },
+        "stops": {
+          "type": "array",
+          "description": "Від точки прийому до точки видачі включно, у порядку проходження",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/RouteStop"
+          }
+        },
+        "plannedDeliveryAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Плановий час прибуття в точку видачі за розкладом"
+        }
+      }
+    },
+    "ProviderPaymentEventType": {
+      "type": "string",
+      "description": "Що сталося в платіжного провайдера. Таймаут 3-D Secure приходить як\nPAYMENT_FAILED з `failureCode: TIMEOUT`.\n",
+      "enum": [
+        "PAYMENT_SUCCEEDED",
+        "PAYMENT_FAILED",
+        "REFUND_SUCCEEDED",
+        "REFUND_FAILED"
+      ]
+    },
+    "ProviderFailureCode": {
+      "type": "string",
+      "description": "Причина відмови провайдера — для *_FAILED",
+      "enum": [
+        "DECLINED",
+        "INSUFFICIENT_FUNDS",
+        "THREE_DS_FAILED",
+        "TIMEOUT"
+      ]
+    },
+    "ProviderPaymentEvent": {
+      "type": "object",
+      "description": "Тіло вебхука mock-pay → payment-service (10.3). Необов'язкові поля\nвідсутні, а не null.\n",
+      "required": [
+        "eventId",
+        "type",
+        "paymentId",
+        "providerReference",
+        "amount",
+        "occurredAt"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Ідентифікатор події провайдера — ключ ідемпотентності"
+        },
+        "type": {
+          "$ref": "#/$defs/ProviderPaymentEventType"
+        },
+        "paymentId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Платіж payment-service, переданий провайдеру під час створення"
+        },
+        "refundId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Повернення коштів — для REFUND_*"
+        },
+        "providerReference": {
+          "type": "string",
+          "description": "Ідентифікатор операції в провайдера",
+          "examples": [
+            "mp_7f3c2a91"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/Money"
+        },
+        "cardMask": {
+          "type": "string",
+          "examples": [
+            "4242 •••• •••• 4242"
+          ]
+        },
+        "failureCode": {
+          "$ref": "#/$defs/ProviderFailureCode"
+        },
+        "failureReason": {
+          "type": "string",
+          "description": "Людський опис відмови — для *_FAILED"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },

@@ -3,6 +3,9 @@ README.md
 lib/api.dart
 lib/api/auth_api.dart
 lib/api/care_api.dart
+lib/api/internal_network_api.dart
+lib/api/internal_payments_api.dart
+lib/api/internal_pricing_api.dart
 lib/api/lockers_api.dart
 lib/api/payments_api.dart
 lib/api/profile_api.dart
@@ -72,6 +75,7 @@ lib/model/favorite_location_patch.dart
 lib/model/favorite_location_request.dart
 lib/model/field_error.dart
 lib/model/geo_point.dart
+lib/model/internal_quote_request.dart
 lib/model/kite_event_type.dart
 lib/model/kite_topic.dart
 lib/model/locale.dart
@@ -97,6 +101,7 @@ lib/model/logistics_trip_departed_event.dart
 lib/model/logistics_unit_closed_data.dart
 lib/model/logistics_unit_closed_event.dart
 lib/model/money.dart
+lib/model/network_route.dart
 lib/model/notification_channel.dart
 lib/model/notification_event_type.dart
 lib/model/notification_preferences.dart
@@ -125,11 +130,15 @@ lib/model/payment_status.dart
 lib/model/payment_subject.dart
 lib/model/payment_succeeded_data.dart
 lib/model/payment_succeeded_event.dart
+lib/model/permission.dart
 lib/model/phone_request.dart
 lib/model/phone_verify_request.dart
 lib/model/problem.dart
 lib/model/promo_code_validate_request.dart
 lib/model/promo_code_validation.dart
+lib/model/provider_failure_code.dart
+lib/model/provider_payment_event.dart
+lib/model/provider_payment_event_type.dart
 lib/model/public_tracking.dart
 lib/model/push_subscription.dart
 lib/model/push_subscription_request.dart
