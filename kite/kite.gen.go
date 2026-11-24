@@ -689,6 +689,21 @@ const (
 	PushSubscriptionRequestKindWEBPUSH PushSubscriptionRequestKind = "WEB_PUSH"
 )
 
+// Defines values for Role.
+const (
+	RoleADMIN        Role = "ADMIN"
+	RoleBIZMEMBER    Role = "BIZ_MEMBER"
+	RoleBIZOWNER     Role = "BIZ_OWNER"
+	RoleCLIENT       Role = "CLIENT"
+	RoleDISPATCHER   Role = "DISPATCHER"
+	RoleDRIVER       Role = "DRIVER"
+	RoleOPERATOR     Role = "OPERATOR"
+	RoleSHIFTMANAGER Role = "SHIFT_MANAGER"
+	RoleSORTER       Role = "SORTER"
+	RoleSUPPORT      Role = "SUPPORT"
+	RoleSYSTEM       Role = "SYSTEM"
+)
+
 // Defines values for RouteStopKind.
 const (
 	DESTINATION RouteStopKind = "DESTINATION"
@@ -964,9 +979,9 @@ const (
 
 // Defines values for TicketMessageAuthor.
 const (
-	AGENT    TicketMessageAuthor = "AGENT"
-	CUSTOMER TicketMessageAuthor = "CUSTOMER"
-	SYSTEM   TicketMessageAuthor = "SYSTEM"
+	TicketMessageAuthorAGENT    TicketMessageAuthor = "AGENT"
+	TicketMessageAuthorCUSTOMER TicketMessageAuthor = "CUSTOMER"
+	TicketMessageAuthorSYSTEM   TicketMessageAuthor = "SYSTEM"
 )
 
 // Defines values for TicketStatus.
@@ -1036,7 +1051,7 @@ const (
 	GetShipmentTimelineParamsAcceptLanguageUk GetShipmentTimelineParamsAcceptLanguage = "uk"
 )
 
-// ActorRole Роль персоналу, що виконала дію (9.5)
+// ActorRole Роль персоналу чи SYSTEM, що виконала дію (3.1, 9.5). Підмножина Role з REST-контракту: ролей клієнтів і бізнесу тут немає, бо в подіях вони не діють
 type ActorRole string
 
 // Address defines model for Address.
@@ -1173,7 +1188,7 @@ type AttachmentRequestContentType string
 
 // AuditPiiAccessedData Доступ до персональних даних: окремий тип події, бо його дивляться окремо (6.2, audit_record).
 type AuditPiiAccessedData struct {
-	// ActorRole Роль персоналу, що виконала дію (9.5)
+	// ActorRole Роль персоналу чи SYSTEM, що виконала дію (3.1, 9.5). Підмножина Role з REST-контракту: ролей клієнтів і бізнесу тут немає, бо в подіях вони не діють
 	ActorRole   ActorRole          `json:"actorRole"`
 	ActorUserId openapi_types.UUID `json:"actorUserId"`
 
@@ -1241,7 +1256,7 @@ type AuditStaffActionData struct {
 	// Action Машинна назва дії
 	Action string `json:"action"`
 
-	// ActorRole Роль персоналу, що виконала дію (9.5)
+	// ActorRole Роль персоналу чи SYSTEM, що виконала дію (3.1, 9.5). Підмножина Role з REST-контракту: ролей клієнтів і бізнесу тут немає, бо в подіях вони не діють
 	ActorRole   ActorRole                   `json:"actorRole"`
 	ActorUserId openapi_types.UUID          `json:"actorUserId"`
 	EntityId    string                      `json:"entityId"`
@@ -3054,6 +3069,9 @@ type RefreshRequest struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+// Role Роль у realm `kite` Keycloak — усі ролі з 3.1 і службова `SYSTEM`; імена збігаються з ролями realm і claim `realm_access.roles` access-токена. Не плутати з `ActorRole`: той описує лише того, хто виконав дію в подіях (персонал і `SYSTEM`), і є підмножиною цього переліку.
+type Role string
+
 // RouteStop defines model for RouteStop.
 type RouteStop struct {
 	Kind RouteStopKind `json:"kind"`
@@ -3281,7 +3299,7 @@ type ScanVoidedData struct {
 	ScanId     openapi_types.UUID  `json:"scanId"`
 	ShipmentId *openapi_types.UUID `json:"shipmentId,omitempty"`
 
-	// VoidedByRole Роль персоналу, що виконала дію (9.5)
+	// VoidedByRole Роль персоналу чи SYSTEM, що виконала дію (3.1, 9.5). Підмножина Role з REST-контракту: ролей клієнтів і бізнесу тут немає, бо в подіях вони не діють
 	VoidedByRole   *ActorRole         `json:"voidedByRole,omitempty"`
 	VoidedByUserId openapi_types.UUID `json:"voidedByUserId"`
 

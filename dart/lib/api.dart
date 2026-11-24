@@ -157,6 +157,7 @@ part 'model/quote.dart';
 part 'model/quote_line.dart';
 part 'model/quote_request.dart';
 part 'model/refresh_request.dart';
+part 'model/role.dart';
 part 'model/route_stop.dart';
 part 'model/scan_batch.dart';
 part 'model/scan_batch_result.dart';

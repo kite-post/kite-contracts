@@ -3,7 +3,7 @@
 #
 
 name: 'kite_contracts'
-version: '0.2.1'
+version: '0.3.0'
 description: 'Моделі REST-контракту і подій Kite, згенеровані з kite-contracts.'
 homepage: 'https://github.com/kite-post/kite-contracts'
 environment:

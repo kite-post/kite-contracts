@@ -109,6 +109,9 @@ String parameterToString(dynamic value) {
   if (value is PaymentSubject) {
     return PaymentSubjectTypeTransformer().encode(value).toString();
   }
+  if (value is Role) {
+    return RoleTypeTransformer().encode(value).toString();
+  }
   if (value is ScanOperation) {
     return ScanOperationTypeTransformer().encode(value).toString();
   }

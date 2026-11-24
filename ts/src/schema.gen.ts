@@ -733,7 +733,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description Роль персоналу, що виконала дію (9.5)
+         * @description Роль персоналу чи SYSTEM, що виконала дію (3.1, 9.5). Підмножина Role з REST-контракту: ролей клієнтів і бізнесу тут немає, бо в подіях вони не діють
          * @enum {string}
          */
         ActorRole: "OPERATOR" | "SORTER" | "DRIVER" | "SHIFT_MANAGER" | "DISPATCHER" | "SUPPORT" | "ADMIN" | "SYSTEM";
@@ -2761,6 +2761,11 @@ export interface components {
         RefreshRequest: {
             refreshToken: string;
         };
+        /**
+         * @description Роль у realm `kite` Keycloak — усі ролі з 3.1 і службова `SYSTEM`; імена збігаються з ролями realm і claim `realm_access.roles` access-токена. Не плутати з `ActorRole`: той описує лише того, хто виконав дію в подіях (персонал і `SYSTEM`), і є підмножиною цього переліку.
+         * @enum {string}
+         */
+        Role: "CLIENT" | "BIZ_OWNER" | "BIZ_MEMBER" | "OPERATOR" | "SORTER" | "SHIFT_MANAGER" | "DRIVER" | "DISPATCHER" | "SUPPORT" | "ADMIN" | "SYSTEM";
         RouteStop: {
             /** @enum {string} */
             kind: "ORIGIN" | "HUB" | "DESTINATION";
@@ -4022,6 +4027,7 @@ export type Quote = components['schemas']['Quote'];
 export type QuoteLine = components['schemas']['QuoteLine'];
 export type QuoteRequest = components['schemas']['QuoteRequest'];
 export type RefreshRequest = components['schemas']['RefreshRequest'];
+export type Role = components['schemas']['Role'];
 export type RouteStop = components['schemas']['RouteStop'];
 export type ScanBatch = components['schemas']['ScanBatch'];
 export type ScanBatchResult = components['schemas']['ScanBatchResult'];
@@ -5615,6 +5621,7 @@ export const paymentSucceededEventSpecversionValues: ReadonlyArray<FlattenedDeep
 export const paymentSucceededEventTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PaymentSucceededEvent"]["type"]> = ["kite.payment.succeeded.v1"];
 export const pushSubscriptionKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PushSubscription"]["kind"]> = ["WEB_PUSH", "FCM"];
 export const pushSubscriptionRequestKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PushSubscriptionRequest"]["kind"]> = ["WEB_PUSH", "FCM"];
+export const roleValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Role"]> = ["CLIENT", "BIZ_OWNER", "BIZ_MEMBER", "OPERATOR", "SORTER", "SHIFT_MANAGER", "DRIVER", "DISPATCHER", "SUPPORT", "ADMIN", "SYSTEM"];
 export const routeStopKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RouteStop"]["kind"]> = ["ORIGIN", "HUB", "DESTINATION"];
 export const scanOperationValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ScanOperation"]> = ["ACCEPT", "UNLOAD", "SORT", "FILL_UNIT", "LOAD", "HANDOVER"];
 export const scanOutcomeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ScanOutcome"]> = ["OK", "WARNING", "ERROR"];

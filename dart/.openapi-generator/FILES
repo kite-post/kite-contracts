@@ -137,6 +137,7 @@ lib/model/quote.dart
 lib/model/quote_line.dart
 lib/model/quote_request.dart
 lib/model/refresh_request.dart
+lib/model/role.dart
 lib/model/route_stop.dart
 lib/model/scan_batch.dart
 lib/model/scan_batch_result.dart

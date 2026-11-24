@@ -6,7 +6,7 @@
 
   <groupId>ua.kite</groupId>
   <artifactId>kite-contracts</artifactId>
-  <version>0.2.1</version>
+  <version>0.3.0</version>
   <packaging>jar</packaging>
 
   <name>kite-contracts</name>

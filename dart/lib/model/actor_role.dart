@@ -10,7 +10,7 @@
 
 part of kite_contracts;
 
-/// Роль персоналу, що виконала дію (9.5)
+/// Роль персоналу чи SYSTEM, що виконала дію (3.1, 9.5). Підмножина Role з REST-контракту: ролей клієнтів і бізнесу тут немає, бо в подіях вони не діють
 class ActorRole {
   /// Instantiate a new enum with the provided [value].
   const ActorRole._(this.value);

@@ -14,7 +14,7 @@ from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, EmailStr, Fie
 
 class ActorRole(StrEnum):
     """
-    Роль персоналу, що виконала дію (9.5)
+    Роль персоналу чи SYSTEM, що виконала дію (3.1, 9.5). Підмножина Role з REST-контракту: ролей клієнтів і бізнесу тут немає, бо в подіях вони не діють
     """
 
     OPERATOR = "OPERATOR"
@@ -1810,6 +1810,24 @@ class RefreshRequest(BaseModel):
         populate_by_name=True,
     )
     refresh_token: Annotated[str, Field(alias="refreshToken")]
+
+
+class Role(StrEnum):
+    """
+    Роль у realm `kite` Keycloak — усі ролі з 3.1 і службова `SYSTEM`; імена збігаються з ролями realm і claim `realm_access.roles` access-токена. Не плутати з `ActorRole`: той описує лише того, хто виконав дію в подіях (персонал і `SYSTEM`), і є підмножиною цього переліку.
+    """
+
+    CLIENT = "CLIENT"
+    BIZ_OWNER = "BIZ_OWNER"
+    BIZ_MEMBER = "BIZ_MEMBER"
+    OPERATOR = "OPERATOR"
+    SORTER = "SORTER"
+    SHIFT_MANAGER = "SHIFT_MANAGER"
+    DRIVER = "DRIVER"
+    DISPATCHER = "DISPATCHER"
+    SUPPORT = "SUPPORT"
+    ADMIN = "ADMIN"
+    SYSTEM = "SYSTEM"
 
 
 class Kind4(StrEnum):
